@@ -2,12 +2,12 @@
 
 ## Tool Description
 
-Sugartrail is a work-in-progress network analysis tool and workflow that helps researchers to use a suspicious company director to discover other suspicious companies, directors and locations through Companies House.
+Sugartrail is a work-in-progress network analysis tool and workflow that helps researchers to use a suspicious officer to discover other suspicious officers, companies and locations through Companies House.
 
 The workflow is based on the following observations:
 
-- suspicious directors often have many active appointments registered to multiple historic addresses
-- addresses with many registered businesses can contain multiple scam businesses
+- suspicious directors often have many active companies registered to multiple historic addresses
+- addresses with many registered companies can contain multiple scam companies
 
 ## Requirements
 
