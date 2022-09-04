@@ -28,7 +28,9 @@ git clone https://github.com/ribenamaplesyrup/sugartrail.git
 ```bash
 conda env create -f environment.yml
 conda activate candystore
+jupyter notebook
 ```
+4. Open `Tutorial 1 - Exit Through the Candy Shop`
 
 ## Usage
 
