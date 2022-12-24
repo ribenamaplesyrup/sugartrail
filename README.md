@@ -1,13 +1,8 @@
 # Sugartrail
 
-## Tool Description
+![title](assets/images/domain.png)
 
-Sugartrail is a work-in-progress network analysis tool and workflow that helps researchers to use a suspicious officer to discover other suspicious officers, companies and locations through Companies House.
-
-The workflow is based on the following observations:
-
-- suspicious directors often have many active companies registered to multiple historic addresses
-- addresses with many registered companies can contain multiple scam companies
+Sugartrail is a network analysis and visualisation tool easier and faster for researchers to explore connections between companies, persons and addresses within Companies House.
 
 ## Requirements
 
@@ -28,10 +23,9 @@ git clone https://github.com/ribenamaplesyrup/sugartrail.git
 ```bash
 conda env create -f environment.yml
 conda activate candystore
+jupyter nbextension enable --py --sys-prefix ipyleaflet
 jupyter notebook
 ```
-4. Open `Tutorial 1 - Exit Through the Candy Shop`
 
 ## Usage
 
-- A walkthrough of how to use the tool is included in the linked Jupyter notebook showing how we can get from suspicious Candy Stores of Oxford Street to several prolific scammers.
