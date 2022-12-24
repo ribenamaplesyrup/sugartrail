@@ -76,7 +76,6 @@ def load_map_data(network):
     m.add_layer(origin_trail)
     marker_cluster = MarkerCluster(
         center=(50, 0),
-        opacity=1,
         markers=get_marker_data(network, address_trail, origin_trail, path_table),
         disable_clustering_at_zoom = 25,
         max_cluster_radius = 25
@@ -109,7 +108,7 @@ def get_marker_data(network,address_trail, origin_trail, path_table):
         marker_color=marker_color
         )
         address_path = get_address_path(network,str(row['company_number']))
-        marker = Marker(icon=icon, location=(row['lat'], row['lon']), draggable=False, popup=message, title="Address")
+        marker = Marker(icon=icon, opacity=1, location=(row['lat'], row['lon']), draggable=False, popup=message, title="Address")
         marker.on_click(functools.partial(on_button_clicked, address_path=address_path, address_trail=address_trail, path_table=path_table, origin_trail=origin_trail, path=path, location=(row['lat'], row['lon']), locations_from_origin = locations_from_origin))
         ms.append(marker)
     return ms
