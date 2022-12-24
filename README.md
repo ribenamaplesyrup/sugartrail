@@ -2,11 +2,11 @@
 
 ![title](assets/images/domain.png)
 
-Sugartrail is a network analysis and visualisation tool easier and faster for researchers to explore connections between companies, persons and addresses within Companies House.
+Sugartrail is a network analysis and visualisation tool developed to make it easier and faster for researchers to explore connections between companies, officers and addresses within Companies House.
 
 ## Requirements
 
-You will require an API key from Companies House to authenticate with the API. First you will need to create a live application to get an API key which you can do by following the [Companies House guide](https://developer.company-information.service.gov.uk/how-to-create-an-application). You will then need to manually hard-code the API key inside the `sugartrail.py` script as the value for `access_token`.
+You will require an API key from Companies House to get data. First you will need to create a live application to get an API key which you can do by following the [Companies House guide](https://developer.company-information.service.gov.uk/how-to-create-an-application).
 
 ## Installation
 
@@ -29,3 +29,4 @@ jupyter notebook
 
 ## Usage
 
+Navigate to `Quickstart.ipynb` to run the tool without needing to use the API. For a more detailed explanation of the tool's capabilities, head to `Tutorial 1 - Get Started`. 
