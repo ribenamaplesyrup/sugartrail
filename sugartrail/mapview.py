@@ -76,6 +76,7 @@ def load_map_data(network):
     m.add_layer(origin_trail)
     marker_cluster = MarkerCluster(
         center=(50, 0),
+        opacity=1,
         markers=get_marker_data(network, address_trail, origin_trail, path_table),
         disable_clustering_at_zoom = 25,
         max_cluster_radius = 25
