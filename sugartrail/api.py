@@ -47,7 +47,7 @@ def get_correspondance_address(officer_id):
 
 def get_appointments(officer_id):
     url = "https://api.company-information.service.gov.uk/officers/" + officer_id + "/appointments"
-    return make_request(url, officer_id, 'officer', 'appointments')['items']
+    return make_request(url, officer_id, 'officer', 'appointments')
 
 def get_duplicate_officers(officer_id):
     url = "https://api.company-information.service.gov.uk/officers/" + officer_id + "/appointments"

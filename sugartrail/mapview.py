@@ -26,7 +26,7 @@ def locations_from_origin_path(path, network):
             lon = last_company_address_row['lon'].item()
             locations.append([float(lat),float(lon)])
         elif node['type'] == 'Address':
-            address_row = network.addresses.loc[network.addresses['address'] == node['value']].iloc[:1]
+            address_row = network.addresses.loc[network.addresses['address'] == node['node']].iloc[:1]
             lat = address_row['lat'].item()
             lon = address_row['lon'].item()
             locations.append([float(lat),float(lon)])
@@ -47,7 +47,7 @@ def html_table_generator(path):
         headers_row += '<th>' + header + '</th>'
     nodes = ""
     for i, node in enumerate(path):
-        nodes += '<tr><td>' + node['node_index'] + '</td><td>' + str(node['value']) + '</td><td>' + str(node['n']) + '</td><td>' + str(node['link_type']) + '</td><td>' + str(node['links_to']) + '</td></tr>'
+        nodes += '<tr><td>' + node['node_index'] + '</td><td>' + str(node['node']) + '</td><td>' + str(node['hop']) + '</td><td>' + str(node['node_type']) + '</td><td>' + str(node['link']) + '</td></tr>'
     table_html = table_style + '<table><tr>' + headers_row + '</tr>' + nodes + '</table>'
     return table_html
 
@@ -103,7 +103,7 @@ def get_marker_data(network,address_trail, origin_trail, path_table):
         address = row['address']
         path = network.find_path(str(row['company_number']))
         locations_from_origin = locations_from_origin_path(path, network)
-        message.value = company_name + "<hr>" + address
+        message.value = str(company_name) + "<hr>" + str(address)
         icon = AwesomeIcon(
         marker_color=marker_color
         )

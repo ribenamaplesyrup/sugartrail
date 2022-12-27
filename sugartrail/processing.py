@@ -12,6 +12,12 @@ def infer_postcode(address_string):
     else:
         return
 
+def get_companies_from_address_database(address, company_data):
+    companies = company_data[company_data[' RegAddress.AddressLine2'].apply(lambda x: str(x).upper() in address.upper()) | company_data['RegAddress.AddressLine1'].apply(lambda x: str(x).upper() in address.upper()) & company_data['RegAddress.PostCode'].apply(lambda x: str(x).upper() in address.upper())]
+    companies = companies.rename(columns={'CompanyName': 'company_name', ' CompanyNumber': 'company_number', 'CompanyStatus': 'company_status', 'CompanyCategory': 'company_type', 'RegAddress.AddressLine1': 'address_line_1', ' RegAddress.AddressLine2': 'address_line_2', 'RegAddress.PostCode': 'postal_code', 'RegAddress.PostTown': 'locality', 'RegAddress.Country': 'country', 'IncorporationDate':'date_of_creation', 'DissolutionDate': 'date_of_cessation'})
+    companies['registered_office_address'] = [{'address_line_1': row['address_line_1'], 'address_line_2': row['address_line_2'], 'locality': row['locality'], 'postal_code': row['postal_code'], 'country': row['country']} for i,row in companies.iterrows()]
+    return companies.to_dict('records')
+
 def load_company_data(company_data_filepath):
     try:
         company_data = pd.read_csv(company_data_filepath)
@@ -73,46 +79,52 @@ def process_address_changes(address_changes):
 
 def build_address_history(company_id):
     company_info = api.get_company(company_id)
-    company_info_subset = {k:company_info[k] for k in ("date_of_creation","date_of_cessation","registered_office_address") if k in company_info}
-    address_changes = api.get_address_changes(company_id)
-    address_keys = ('start_date','end_date','address')
-    if address_changes['items']:
-        address_changes = process_address_changes(address_changes)
-        addresses = []
-        entry = {}
-        entry["company_number"] = str(company_id)
-        entry["address"] = str(normalise_address(company_info_subset['registered_office_address']))
-        entry["start_date"] = str(address_changes['items'][0]['date'])
-        if 'date_of_cessation' in company_info_subset:
-            entry["end_date"] = str(company_info_subset['date_of_cessation'])
+    if company_info:
+        company_info_subset = {k:company_info[k] for k in ("date_of_creation","date_of_cessation","registered_office_address") if k in company_info}
+        address_changes = api.get_address_changes(company_id)
+        address_keys = ('start_date','end_date','address')
+        if address_changes:
+            if address_changes['items']:
+                address_changes = process_address_changes(address_changes)
+                addresses = []
+                entry = {}
+                entry["company_number"] = str(company_id)
+                entry["address"] = str(normalise_address(company_info_subset['registered_office_address']))
+                entry["start_date"] = str(address_changes['items'][0]['date'])
+                if 'date_of_cessation' in company_info_subset:
+                    entry["end_date"] = str(company_info_subset['date_of_cessation'])
+                else:
+                    entry["end_date"] = None
+                addresses.append(entry)
+                for i,change in enumerate(address_changes['items']):
+                    entry = {}
+                    entry["company_number"] = str(company_id)
+                    if 'old_address' in change['description_values']:
+                        entry["address"] = change['description_values']['old_address']
+                    else:
+                        entry["address"] = ""
+                    if i+1 < len(address_changes['items']):
+                        entry["start_date"] = str(address_changes['items'][i+1]['date'])
+                    else:
+                        entry["start_date"] = company_info_subset['date_of_creation']
+                    entry["end_date"] = str(change['date'])
+                    addresses.append(entry)
+                return addresses
+            else:
+                return []
         else:
-            entry["end_date"] = None
-        addresses.append(entry)
-        for i,change in enumerate(address_changes['items']):
+            address_history = []
             entry = {}
+            for k, key in enumerate(["date_of_creation","date_of_cessation","registered_office_address"]):
+                if key in company_info:
+                    entry[address_keys[k]] = company_info[key]
+                else:
+                    entry[address_keys[k]] = None
             entry["company_number"] = str(company_id)
-            if 'old_address' in change['description_values']:
-                entry["address"] = change['description_values']['old_address']
-            else:
-                entry["address"] = ""
-            if i+1 < len(address_changes['items']):
-                entry["start_date"] = str(address_changes['items'][i+1]['date'])
-            else:
-                entry["start_date"] = company_info_subset['date_of_creation']
-            entry["end_date"] = str(change['date'])
-            addresses.append(entry)
-        return addresses
+            entry['address'] = normalise_address(entry['address'])
+            return [entry]
     else:
-        address_history = []
-        entry = {}
-        for k, key in enumerate(["date_of_creation","date_of_cessation","registered_office_address"]):
-            if key in company_info:
-                entry[address_keys[k]] = company_info[key]
-            else:
-                entry[address_keys[k]] = None
-        entry["company_number"] = str(company_id)
-        entry['address'] = normalise_address(entry['address'])
-        return [entry]
+        return []
 
 def normalise_address(address_dict):
     address_list = []

@@ -65,7 +65,8 @@ class Network:
         self.officer_ids = self.officer_ids.iloc[0:0]
         self.addresses = self.addresses.iloc[0:0]
         if self._officer_id:
-            self.officer_ids = self.officer_ids.append({'officer_id': self._officer_id, 'name': api.get_appointments(self._officer_id)[0]['name'], 'n':self.n, 'link_type': None, 'node_type': None, 'node': None}, ignore_index=True)
+            if api.get_appointments(self._officer_id):
+                self.officer_ids = self.officer_ids.append({'officer_id': self._officer_id, 'name': api.get_appointments(self._officer_id)['items'][0]['name'], 'n':self.n, 'link_type': None, 'node_type': None, 'node': None}, ignore_index=True)
         elif self.company_id:
             self.company_ids = self.company_ids.append({'company_id': self._company_id, 'n':self.n, 'link_type': None, 'node_type': None, 'node': None}, ignore_index=True)
             company = api.get_company(self._company_id)
@@ -134,7 +135,7 @@ class Network:
         path = []
         company_info = self.get_company_from_id(company_id=select_company, print_progress=False)
         for i, row in network_link_type_rows.iterrows():
-            path.insert(0, {'n': row['n'], "type": "Company", "id": select_company, "value": self.companies[self.companies["company_number"] == select_company]['company_name'].item(), "link_type": row['link_type'], "link": row['node']})
+            path.insert(0, {'hop': row['n'], "type": "Company", "id": select_company, "node": self.companies[self.companies["company_number"] == select_company]['company_name'].item(), "node_type": row['link_type'], "link_id": row['node']})
             search_terms = [{'n': row['n']-1, 'node_type':row['node_type'], 'node':row['node']}]
             for j in range(row['n']-1,-1,-1):
                 for term in search_terms:
@@ -143,27 +144,26 @@ class Network:
                             select_rows = self.addresses.loc[(self.addresses['address'] == term['node']) & (self.addresses['n'] == j)]
                             for k, select_row in select_rows.iterrows():
                                 if select_row['n'] == 0:
-                                    origin = {'n': j, "type": "Address", "id": select_row['address'], "value": select_row['address'], "link_type": "", "link": ""}
+                                    origin = {'hop': j, "type": "Address", "id": select_row['address'], "node": select_row['address'], "node_type": "", "link_id": ""}
                                     if origin not in path:
                                         path.insert(0, origin)
                                         break
                                 else:
-                                    item = {'n': j, "type": "Address", "id": select_row['address'], "value": select_row['address'], "link_type": select_row['link_type'], "link": select_row['node']}
+                                    item = {'hop': j, "type": "Address", "id": select_row['address'], "node": select_row['address'], "node_type": select_row['link_type'], "link_id": select_row['node']}
                                     if item not in path:
                                         path.insert(0, item)
                                         search_terms.append({'n': j-1, 'node_type':select_row['node_type'], 'node':select_row['node']})
-                            break
                         elif term['node_type'] == "Company":
                             select_rows = self.company_ids.loc[(self.company_ids['company_id'] == term['node']) & (self.company_ids['n'] == j)]
                             for l, select_row in select_rows.iterrows():
                                 self.get_company_from_id(company_id=select_row['company_id'], print_progress=False)
                                 if select_row['n'] == 0:
-                                    origin = {'n': j, "type": "Company", "id": select_row['company_id'], "value": self.companies[self.companies["company_number"] == select_row['company_id']]['company_name'].item(), "link_type": "", "link": ""}
+                                    origin = {'hop': j, "type": "Company", "id": select_row['company_id'], "node": self.companies[self.companies["company_number"] == select_row['company_id']]['company_name'].item(), "node_type": "", "link_id": ""}
                                     if origin not in path:
                                         path.insert(0, origin)
                                         break
                                 else:
-                                    item = {'n': j, "type": "Company", "id": select_row['company_id'], "value": self.companies[self.companies["company_number"] == select_row['company_id']]['company_name'].item(), "link_type": select_row['link_type'], "link": select_row['node']}
+                                    item = {'hop': j, "type": "Company", "id": select_row['company_id'], "node": self.companies[self.companies["company_number"] == select_row['company_id']]['company_name'].item(), "node_type": select_row['link_type'], "link_id": select_row['node']}
                                     if item not in path:
                                         path.insert(0, item)
                                         search_terms.append({'n': j-1, 'node_type':select_row['node_type'], 'node':select_row['node']})
@@ -171,31 +171,30 @@ class Network:
                             select_rows = self.officer_ids.loc[(self.officer_ids['officer_id'] == term['node']) & (self.officer_ids['n'] == j)]
                             for m, select_row in select_rows.iterrows():
                                 if select_row['link_type'] == 0:
-                                    origin = {'n': j, "type": "Person", "id": select_row["officer_id"], "value": select_row['name'], "link_type": "", "link": ""}
+                                    origin = {'hop': j, "type": "Person", "id": select_row["officer_id"], "node": select_row['name'], "node_type": "", "link_id": ""}
                                     if origin not in path:
                                         path.insert(0, origin)
                                         break
                                 else:
-                                    item = {'n': j, "type": "Person", "id": select_row["officer_id"], "value": str(select_row['name']), "link_type": str(select_row['link_type']), "link": select_row['node']}
+                                    item = {'hop': j, "type": "Person", "id": select_row["officer_id"], "node": str(select_row['name']), "node_type": str(select_row['link_type']), "link_id": select_row['node']}
                                     if item not in path:
                                         path.insert(0, item)
                                         search_terms.append({'n': j-1, 'node_type':select_row['node_type'], 'node':select_row['node']})
-                            break
                         else:
                             print(f"{row['node_type']} is invalid node_type")
                             break
-        sorted_path = sorted(path, key=lambda d: d['n'])
+        sorted_path = sorted(path, key=lambda d: d['hop'])
         for i in range(len(sorted_path)-1,-1,-1):
-            search_term = sorted_path[i]['link']
+            search_term = sorted_path[i]['link_id']
             link_indices = []
             for j,item in enumerate(sorted_path):
                 if item['id'] == search_term:
                     link_indices.append(alc[j].upper())
-            sorted_path[i]["links_to"] = ','.join(link_indices)
+            sorted_path[i]["link"] = ','.join(link_indices)
             sorted_path[i]["node_index"] = alc[i].upper()
         return sorted_path
 
-    def perform_hop(self, hops):
+    def perform_hop(self, hops, company_data=None):
         for hop in range(hops):
             selected_addresses = self.addresses.loc[self.addresses['n'] == self.n]['address']
             selected_companies = self.company_ids.loc[self.company_ids['n'] == self.n]['company_id']
@@ -207,7 +206,7 @@ class Network:
                 self.n += 1
                 self.hop_history = self.hop_history.append(self.hop.__dict__, ignore_index=True)
                 for i,address in enumerate(selected_addresses):
-                    self.hop.search_address(self, address)
+                    self.hop.search_address(self, address, company_data)
                     IPython.display.clear_output(wait=True)
                     print("Hop number: " + str(hop+1))
                     print("Processed " + str(i+1) + "/" + str(len(selected_addresses)) + " addresses.")
@@ -243,8 +242,9 @@ class Network:
         def search_company_id(self, network, company_id):
             officers = []
             if self.get_company_officers:
-                if api.get_company_officers(company_id):
-                    officers = api.get_company_officers(company_id)['items']
+                officers = api.get_company_officers(company_id)
+                if officers:
+                    officers = officers['items']
             network.node_type = "Company"
             network.node = company_id
             if officers:
@@ -277,18 +277,18 @@ class Network:
         def search_officer_id(self, network, officer_id):
             network.node_type = "Person"
             network.node = officer_id
-            if self.get_officer_appointments:
-                appointments = api.get_appointments(officer_id)
-                if self.officer_appointments_maxsize == None or len(appointments) < int(self.officer_appointments_maxsize or 0):
-                    for appointment in appointments:
+            appointments = api.get_appointments(officer_id)
+            if appointments:
+                if self.officer_appointments_maxsize == None or len(appointments['items']) < int(self.officer_appointments_maxsize or 0):
+                    for appointment in appointments['items']:
                         if processing.normalise_address(appointment['address']) not in network.addresses[network.addresses['n'] < network.n]['address'].unique():
                             network.link_type = "Appointment Address"
                             network.addresses = network.addresses.append({'address': processing.normalise_address(appointment['address']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
                         if appointment['appointed_to']['company_number'] not in network.company_ids[network.company_ids['n'] < network.n]['company_id'].unique():
                             network.link_type = "Appointment"
                             network.company_ids = network.company_ids.append({'company_id': appointment['appointed_to']['company_number'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
-                elif len(appointments) > int(self.officer_appointments_maxsize):
-                    network.maxsize_entities = network.maxsize_entities.append({'node':officer_id,'type': 'Officer', 'maxsize_type': 'Appointments', 'size': len(appointments)}, ignore_index=True)
+                elif len(appointments['items']) > int(self.officer_appointments_maxsize):
+                    network.maxsize_entities = network.maxsize_entities.append({'node':officer_id,'type': 'Officer', 'maxsize_type': 'Appointments', 'size': len(appointments['items'])}, ignore_index=True)
             if self.get_officer_correspondance_address:
                 correspondance_address = api.get_correspondance_address(officer_id)
                 if correspondance_address:
@@ -297,38 +297,48 @@ class Network:
                         network.addresses = network.addresses.append({'address': processing.normalise_address(correspondance_address['items'][0]['address']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
             if self.get_officer_duplicates:
                 duplicate_officers = api.get_duplicate_officers(officer_id)
-                if self.officer_duplicates_maxsize == None or len(duplicate_officers) < int(self.officer_duplicates_maxsize or 0):
-                    for duplicate in duplicate_officers:
-                        network.link_type = "Duplicate Officer"
-                        if duplicate['links']['self'].split('/')[2] not in network.officer_ids[network.officer_ids['n'] < network.n]['officer_id'].unique():
-                            network.officer_ids = network.officer_ids.append({'officer_id': duplicate['links']['self'].split('/')[2], 'name': duplicate['title'], 'n':network.n, 'link_type': network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
-                elif len(duplicate_officers) > int(self.officer_duplicates_maxsize):
-                    network.maxsize_entities = network.maxsize_entities.append({'node':officer_id,'type': 'Officer', 'maxsize_type': 'Duplicates', 'size': len(duplicate_officers)}, ignore_index=True)
-            network.addresses = network.addresses.drop_duplicates().reset_index(drop=True)
+                if duplicate_officers:
+                    if self.officer_duplicates_maxsize == None or len(duplicate_officers) < int(self.officer_duplicates_maxsize or 0):
+                        for duplicate in duplicate_officers:
+                            network.link_type = "Duplicate Officer"
+                            if duplicate['links']['self'].split('/')[2] not in network.officer_ids[network.officer_ids['n'] < network.n]['officer_id'].unique():
+                                network.officer_ids = network.officer_ids.append({'officer_id': duplicate['links']['self'].split('/')[2], 'name': duplicate['title'], 'n':network.n, 'link_type': network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
+                    elif len(duplicate_officers) > int(self.officer_duplicates_maxsize):
+                        network.maxsize_entities = network.maxsize_entities.append({'node':officer_id,'type': 'Officer', 'maxsize_type': 'Duplicates', 'size': len(duplicate_officers)}, ignore_index=True)
+                network.addresses = network.addresses.drop_duplicates().reset_index(drop=True)
             network.officer_ids = network.officer_ids.drop_duplicates().reset_index(drop=True)
             network.company_ids = network.company_ids.drop_duplicates().reset_index(drop=True)
 
-        def search_address(self, network, address):
+        def search_address(self, network, address, company_data):
             network.node_type = "Address"
             network.node = address
             if self.get_companies_at_address:
-                companies = api.get_companies_at_address(address)
+                # database method here:
+                companies = {}
+                if company_data is not None:
+                    companies['items'] = processing.get_companies_from_address_database(address, company_data)
+                else:
+                    companies = api.get_companies_at_address(address)
                 if companies:
                     if self.companies_at_address_maxsize == None or len(companies['items']) < int(self.companies_at_address_maxsize or 0):
+                        company_ids = []
                         for company in companies['items']:
                             network.link_type = "Company at Address"
                             if company['company_number'] not in network.company_ids[network.company_ids['n'] < network.n]['company_id'].unique():
-                                network.company_ids = network.company_ids.append({'company_id': company['company_number'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
+                                company_ids.append({'company_id': company['company_number'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node})
+                        network.company_ids = network.company_ids.append(company_ids, ignore_index=True)
                     elif len(companies['items']) > int(self.companies_at_address_maxsize):
                         network.maxsize_entities = network.maxsize_entities.append({'node':address,'type': 'Address', 'maxsize_type': 'Companies', 'size': len(companies['items'])},ignore_index=True)
+
             if self.get_officers_at_address:
                 officers = api.get_officers_at_address(address)
-                if self.officers_at_address_maxsize == None or len(officers) < int(self.officers_at_address_maxsize or 0):
-                    for officer in officers:
-                        network.link_type = "Officer at Address"
-                        if officer['links']['self'].split('/')[2] not in network.officer_ids[network.officer_ids['n'] < network.n]['officer_id'].unique():
-                            network.officer_ids = network.officer_ids.append({'officer_id': officer['links']['self'].split('/')[2], 'name': officer['title'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
-                elif len(officers) > int(self.officers_at_address_maxsize):
-                    network.maxsize_entities = network.maxsize_entities.append({'node':address,'type': 'Address', 'maxsize_type': 'Officers', 'size': len(officers)},ignore_index=True)
+                if officers:
+                    if self.officers_at_address_maxsize == None or len(officers) < int(self.officers_at_address_maxsize or 0):
+                        for officer in officers:
+                            network.link_type = "Officer at Address"
+                            if officer['links']['self'].split('/')[2] not in network.officer_ids[network.officer_ids['n'] < network.n]['officer_id'].unique():
+                                network.officer_ids = network.officer_ids.append({'officer_id': officer['links']['self'].split('/')[2], 'name': officer['title'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
+                    elif len(officers) > int(self.officers_at_address_maxsize):
+                        network.maxsize_entities = network.maxsize_entities.append({'node':address,'type': 'Address', 'maxsize_type': 'Officers', 'size': len(officers)},ignore_index=True)
             network.officer_ids = network.officer_ids.drop_duplicates().reset_index(drop=True)
             network.company_ids = network.company_ids.drop_duplicates().reset_index(drop=True)
