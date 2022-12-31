@@ -208,18 +208,18 @@ class Network:
                 for i,address in enumerate(selected_addresses):
                     self.hop.search_address(self, address, company_data)
                     IPython.display.clear_output(wait=True)
-                    print("Hop number: " + str(hop+1))
+                    print("Hop number: " + str(hop))
                     print("Processed " + str(i+1) + "/" + str(len(selected_addresses)) + " addresses.")
                 for j,company in enumerate(selected_companies):
                     self.hop.search_company_id(self,company)
                     IPython.display.clear_output(wait=True)
-                    print("Hop number: " + str(hop+1))
+                    print("Hop number: " + str(hop))
                     print("Processed " + str(len(selected_addresses)) + "/" + str(len(selected_addresses)) + " addresses.")
                     print("Processed " + str(j+1) + "/" + str(len(selected_companies)) + " companies.")
                 for k,officer in enumerate(selected_officers):
                     self.hop.search_officer_id(self,officer)
                     IPython.display.clear_output(wait=True)
-                    print("Hop number: " + str(hop+1))
+                    print("Hop number: " + str(hop))
                     print("Processed " + str(len(selected_addresses)) + "/" + str(len(selected_addresses)) + " addresses.")
                     print("Processed " + str(len(selected_companies)) + "/" + str(len(selected_companies)) + " companies.")
                     print("Processed " + str(k+1) + "/" + str(len(selected_officers)) + " officers.")
@@ -230,14 +230,14 @@ class Network:
             self.get_company_address_history = True
             self.get_psc_correspondance_address = True
             self.get_officer_appointments = True
-            self.officer_appointments_maxsize = 2000
+            self.officer_appointments_maxsize = 50
             self.get_officer_correspondance_address = True
             self.get_officer_duplicates = True
             self.officer_duplicates_maxsize = None
             self.get_officers_at_address = True
-            self.officers_at_address_maxsize = 1000
+            self.officers_at_address_maxsize = 50
             self.get_companies_at_address = True
-            self.companies_at_address_maxsize = 500
+            self.companies_at_address_maxsize = 50
 
         def search_company_id(self, network, company_id):
             officers = []

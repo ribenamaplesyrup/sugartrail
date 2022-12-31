@@ -8,6 +8,14 @@ password = ""
 size = "5000"
 basic_auth = requests.auth.HTTPBasicAuth(username, password)
 
+def test():
+    url = "https://api.company-information.service.gov.uk/advanced-search/companies"
+    response = requests.get(url, auth=basic_auth)
+    if response.status_code == 200:
+        return True
+    else:
+        return False
+
 def make_request(url, input, input_type, response_type):
     time.sleep(0.5)
     try:
@@ -17,13 +25,17 @@ def make_request(url, input, input_type, response_type):
         if response.status_code == 200:
             return response.json()
     except requests.exceptions.RequestException as err:
-        print (err, f"{os.linesep}Failed to get {response_type} for {input_type}:", str(input))
+        # print (err, f"{os.linesep}Failed to get {response_type} for {input_type}:", str(input))
+        return
     except requests.exceptions.HTTPError as errh:
-        print (errh, f"{os.linesep}Failed to get {response_type} for {input_type}:", str(input))
+        # print (errh, f"{os.linesep}Failed to get {response_type} for {input_type}:", str(input))
+        return
     except requests.exceptions.ConnectionError as errc:
-        print (errc, f"{os.linesep}Failed to get {response_type} for {input_type}:", str(input))
+        # print (errc, f"{os.linesep}Failed to get {response_type} for {input_type}:", str(input))
+        return
     except requests.exceptions.Timeout as errt:
-        print (errt, f"{os.linesep}Failed to get {response_type} for {input_type}:", str(input))
+        # print (errt, f"{os.linesep}Failed to get {response_type} for {input_type}:", str(input))
+        return
 
 def get_company_officers(company_id):
     url = "https://api.company-information.service.gov.uk/company/" + company_id + "/officers"

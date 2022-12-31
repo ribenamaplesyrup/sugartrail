@@ -4,9 +4,11 @@ import pandas as pd
 from datetime import datetime
 import functools
 from string import ascii_lowercase as alc
+import math
 
-def build_map(network):
-    Widget.close_all()
+def build_map(network, clear_widget=True):
+    if clear_widget:
+        Widget.close_all()
     m, path_table = load_map_data(network)
     return m, path_table
 
@@ -14,7 +16,10 @@ def get_address_path(network, company_id):
     company_address_history = network.address_history.loc[network.address_history['company_number'] == company_id]
     address_path = []
     for index, row in company_address_history.iterrows():
-        address_path.insert(0,[row['lat'], row['lon']])
+        if math.isnan(float(row['lat'])) or math.isnan(float(row['lon'])):
+            pass
+        else:
+            address_path.insert(0,[row['lat'], row['lon']])
     return address_path
 
 def locations_from_origin_path(path, network):
@@ -24,12 +29,18 @@ def locations_from_origin_path(path, network):
             last_company_address_row = network.address_history.loc[network.address_history['company_number'] == node['id']].iloc[:1]
             lat = last_company_address_row['lat'].item()
             lon = last_company_address_row['lon'].item()
-            locations.append([float(lat),float(lon)])
+            if math.isnan(float(lat)):
+                pass
+            else:
+                locations.append([float(lat),float(lon)])
         elif node['type'] == 'Address':
             address_row = network.addresses.loc[network.addresses['address'] == node['node']].iloc[:1]
             lat = address_row['lat'].item()
             lon = address_row['lon'].item()
-            locations.append([float(lat),float(lon)])
+            if math.isnan(float(lat)) or math.isnan(float(lon)):
+                pass
+            else:
+                locations.append([float(lat),float(lon)])
     return locations
 
 def on_button_clicked(address_path, path, location, address_trail, path_table, origin_trail, locations_from_origin, **kwargs):
