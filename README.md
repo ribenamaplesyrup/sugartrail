@@ -21,12 +21,12 @@ git clone https://github.com/ribenamaplesyrup/sugartrail.git
 3. Navigate to the main directory and run:
 
 ```bash
-conda env create -f environment.yml
+conda env create -f config/environment.yml
 conda activate candystore
+pip install -e .
 jupyter nbextension enable --py --sys-prefix ipyleaflet
-jupyter notebook
 ```
 
 ## Usage
 
-Navigate to `Quickstart.ipynb` to run the tool without needing to use the API. For a more detailed explanation of the tool's capabilities, head to `Tutorial 1 - Get Started`. 
+For a quickstart run `voila dashboard/quickstart_voila.ipynb` (no-code). For a more detailed explanation of the tool's capabilities, run `jupyter notebook notebooks` and open either `quickstart.ipynb` or `001_getting_started.ipynb`. 
