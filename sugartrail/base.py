@@ -12,10 +12,10 @@ pd.set_option('display.max_rows', 150)
 
 class Network:
     def __init__(self, officer_id=None, company_id=None, address=None):
-        self.addresses = pd.DataFrame(columns=['address','n','link_type','node_type','node','lat','lon'])
+        self.addresses = pd.DataFrame(columns=['address','lat','lon','n','link_type','node_type','node'])
         self.officer_ids = pd.DataFrame(columns=['officer_id','name','n','link_type','node_type','node'])
         self.company_ids = pd.DataFrame(columns=['company_id','n','link_type','node_type','node',])
-        self.companies = pd.DataFrame(columns=['company_number','n'])
+        self.companies = pd.DataFrame(columns=['company_number'])
         self.address_history = pd.DataFrame(columns=['company_number', 'address', 'start_date', 'end_date', 'lat', 'lon'])
         self._officer_id = officer_id
         self._company_id = company_id
@@ -70,13 +70,19 @@ class Network:
         elif self.company_id:
             self.company_ids = self.company_ids.append({'company_id': self._company_id, 'n':self.n, 'link_type': None, 'node_type': None, 'node': None}, ignore_index=True)
             company = api.get_company(self._company_id)
-            company['n'] = self.n
+            # company['n'] = self.n
             company['link_type'] = self.link_type
             self.companies = self.companies.append(pd.json_normalize(company), ignore_index=True)
         elif self._address:
             self.addresses = self.addresses.append({'address': self._address, 'n':self.n, 'link_type': None, 'node_type': None, 'node': None,}, ignore_index=True)
         else:
             print("No input provided. Please provide either officer_id, company_id or address value as input.")
+
+    def add_company_names(self):
+        self.company_ids['name'] = ''
+        for i, row in self.company_ids.iterrows():
+            self.company_ids['name'][i] = self.companies.loc[self.companies['company_number'] == self.company_ids['company_id'][i]]['company_name'].unique()[0]
+        self.company_ids = self.company_ids[['company_id', 'name', 'n', 'link_type', 'node_type', 'node']]
 
     def get_company_from_id(self, company_df=None, company_id=None, print_progress=True):
         company_list = []
@@ -111,6 +117,7 @@ class Network:
 
     def run_map_preprocessing(self):
         self.get_company_from_id()
+        self.add_company_names()
         self.get_coords()
         return
 
