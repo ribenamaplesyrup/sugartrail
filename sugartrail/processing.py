@@ -111,7 +111,16 @@ def build_address_history(company_id):
                     addresses.append(entry)
                 return addresses
             else:
-                return []
+                address_history = []
+                entry = {}
+                for k, key in enumerate(["date_of_creation","date_of_cessation","registered_office_address"]):
+                    if key in company_info:
+                        entry[address_keys[k]] = company_info[key]
+                    else:
+                        entry[address_keys[k]] = None
+                entry["company_number"] = str(company_id)
+                entry['address'] = normalise_address(entry['address'])
+                return [entry]
         else:
             address_history = []
             entry = {}
