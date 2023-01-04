@@ -66,15 +66,16 @@ class Network:
         self.addresses = self.addresses.iloc[0:0]
         if self._officer_id:
             if api.get_appointments(self._officer_id):
-                self.officer_ids = self.officer_ids.append({'officer_id': self._officer_id, 'name': api.get_appointments(self._officer_id)['items'][0]['name'], 'n':self.n, 'link_type': None, 'node_type': None, 'node': None}, ignore_index=True)
+                self.officer_ids = pd.DataFrame([{'officer_id': self._officer_id, 'name': api.get_appointments(self._officer_id)['items'][0]['name'], 'n':self.n, 'link_type': None, 'node_type': None, 'node': None}])
         elif self.company_id:
-            self.company_ids = self.company_ids.append({'company_id': self._company_id, 'n':self.n, 'link_type': None, 'node_type': None, 'node': None}, ignore_index=True)
+            self.company_ids = pd.DataFrame([{'company_id': self._company_id, 'n':self.n, 'link_type': None, 'node_type': None, 'node': None}])
             company = api.get_company(self._company_id)
             # company['n'] = self.n
-            company['link_type'] = self.link_type
-            self.companies = self.companies.append(pd.json_normalize(company), ignore_index=True)
+            # company['link_type'] = self.link_type
+            self.companies = pd.DataFrame(pd.json_normalize(company))
+            # self.companies = pd.DataFrame([company])
         elif self._address:
-            self.addresses = self.addresses.append({'address': self._address, 'n':self.n, 'link_type': None, 'node_type': None, 'node': None,}, ignore_index=True)
+            self.addresses = pd.DataFrame.from_dict([{'address': self._address, 'n':self.n, 'link_type': None, 'node_type': None, 'node': None,}])
         else:
             print("No input provided. Please provide either officer_id, company_id or address value as input.")
 
@@ -93,6 +94,8 @@ class Network:
                 print("add valid company id")
         else:
             company_list = self.company_ids['company_id'].unique()
+        # companies
+        companies = []
         for i, company_id in enumerate(company_list):
             IPython.display.clear_output(wait=True)
             if print_progress:
@@ -102,18 +105,23 @@ class Network:
                     try:
                         company = company_df[company_df[" CompanyNumber"] == str(company_id)]["CompanyName"].item()
                         if company:
-                            self.companies = self.companies.append(pd.json_normalize(company), ignore_index=True)
+                            # self.companies = self.companies.append(pd.json_normalize(company), ignore_index=True)
+                            companies.append(company)
                     except:
                         try:
                             company = api.get_company(company_id)
                             if company:
-                                self.companies = self.companies.append(pd.json_normalize(company), ignore_index=True)
+                                # self.companies = self.companies.append(pd.json_normalize(company), ignore_index=True)
+                                companies.append(company)
                         except:
                             print(f"Failed to get data for {company_id}")
                 else:
                     company = api.get_company(company_id)
                     if company:
-                        self.companies = self.companies.append(pd.json_normalize(company), ignore_index=True)
+                        # self.companies = self.companies.append(pd.json_normalize(company), ignore_index=True)
+                        companies.append(company)
+        # add companies to dataframe
+        self.companies = self.companies.append(companies, ignore_index=True)
 
     def run_map_preprocessing(self):
         self.get_company_from_id()
@@ -202,6 +210,7 @@ class Network:
         return sorted_path
 
     def perform_hop(self, hops, company_data=None):
+        hop_history = []
         for hop in range(hops):
             selected_addresses = self.addresses.loc[self.addresses['n'] == self.n]['address']
             selected_companies = self.company_ids.loc[self.company_ids['n'] == self.n]['company_id']
@@ -211,7 +220,8 @@ class Network:
                 break
             else:
                 self.n += 1
-                self.hop_history = self.hop_history.append(self.hop.__dict__, ignore_index=True)
+                hop_history.append(self.hop.__dict__)
+                # self.hop_history = self.hop_history.append(self.hop.__dict__, ignore_index=True)
                 for i,address in enumerate(selected_addresses):
                     self.hop.search_address(self, address, company_data)
                     IPython.display.clear_output(wait=True)
@@ -230,6 +240,7 @@ class Network:
                     print("Processed " + str(len(selected_addresses)) + "/" + str(len(selected_addresses)) + " addresses.")
                     print("Processed " + str(len(selected_companies)) + "/" + str(len(selected_companies)) + " companies.")
                     print("Processed " + str(k+1) + "/" + str(len(selected_officers)) + " officers.")
+        self.hop_history = self.hop_history.append(hop_history)
 
     class Hop:
         def __init__(self):
@@ -248,6 +259,8 @@ class Network:
 
         def search_company_id(self, network, company_id):
             officers = []
+            new_addresses = []
+            new_officers = []
             if self.get_company_officers:
                 officers = api.get_company_officers(company_id)
                 if officers:
@@ -258,10 +271,16 @@ class Network:
                 for officer in officers:
                     if processing.normalise_address(officer['address']) not in network.addresses[network.addresses['n'] < network.n]['address'].unique():
                         network.link_type = "Officer Corresponance Address"
-                        network.addresses = network.addresses.append({'address': processing.normalise_address(officer['address']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
+                        new_address = {'address': processing.normalise_address(officer['address']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                        if new_address not in new_addresses:
+                            new_addresses.append(new_address)
+                        # network.addresses = network.addresses.append({'address': processing.normalise_address(officer['address']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
                     if officer['links']['officer']['appointments'].split('/')[2] not in network.officer_ids[network.officer_ids['n'] < network.n]['officer_id'].unique():
                         network.link_type = "Officer"
-                        network.officer_ids = network.officer_ids.append({'officer_id': officer['links']['officer']['appointments'].split('/')[2], 'name': processing.normalise_name(officer['name']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
+                        new_officer = {'officer_id': str(officer['links']['officer']['appointments'].split('/')[2]), 'name': processing.normalise_name(officer['name']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                        if new_officer not in new_officers:
+                            new_officers.append(new_officer)
+                        # network.officer_ids = network.officer_ids.append({'officer_id': officer['links']['officer']['appointments'].split('/')[2], 'name': processing.normalise_name(officer['name']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
             if self.get_psc_correspondance_address:
                 psc = api.get_psc(company_id)
                 if psc:
@@ -269,19 +288,31 @@ class Network:
                         if "address" in person:
                             network.link_type = "Person of Significant Control Address"
                             if processing.normalise_address(person['address']) not in network.addresses[network.addresses['n'] < network.n]['address'].unique():
-                                network.addresses = network.addresses.append({'address': processing.normalise_address(person['address']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
+                                new_address = {'address': processing.normalise_address(person['address']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                                if new_address not in new_addresses:
+                                    new_addresses.append(new_address)
+                                # network.addresses = network.addresses.append({'address': processing.normalise_address(person['address']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
             if self.get_company_address_history:
                 address_history = processing.build_address_history(company_id)
                 network.address_history = network.address_history.append(address_history, ignore_index=True)
                 for address in address_history:
                     network.link_type = "Historic Address"
                     if address['address'] not in network.addresses[network.addresses['n'] < network.n]['address'].unique():
-                        network.addresses = network.addresses.append({'address': address['address'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
-            network.address_history = network.address_history.drop_duplicates().reset_index(drop=True)
-            network.addresses = network.addresses.drop_duplicates().reset_index(drop=True)
-            network.officer_ids = network.officer_ids.drop_duplicates().reset_index(drop=True)
+                        new_address = {'address': address['address'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                        if new_address not in new_addresses:
+                            new_addresses.append({'address': address['address'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node})
+                        # network.addresses = network.addresses.append({'address': address['address'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
+            network.addresses = network.addresses.append(new_addresses, ignore_index=True)
+            network.officer_ids = network.officer_ids.append(new_officers, ignore_index=True)
+            # network.addresses = network.addresses.drop_duplicates().reset_index(drop=True)
+            # network.officer_ids = network.officer_ids.drop_duplicates().reset_index(drop=True)
+            # network.address_history = network.address_history.drop_duplicates().reset_index(drop=True)
+
 
         def search_officer_id(self, network, officer_id):
+            new_addresses = []
+            new_companies = []
+            new_officers = []
             network.node_type = "Person"
             network.node = officer_id
             appointments = api.get_appointments(officer_id)
@@ -290,10 +321,16 @@ class Network:
                     for appointment in appointments['items']:
                         if processing.normalise_address(appointment['address']) not in network.addresses[network.addresses['n'] < network.n]['address'].unique():
                             network.link_type = "Appointment Address"
-                            network.addresses = network.addresses.append({'address': processing.normalise_address(appointment['address']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
+                            new_address = {'address': processing.normalise_address(appointment['address']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                            if new_address not in new_addresses:
+                                new_addresses.append(new_address)
+                            # network.addresses = network.addresses.append({'address': processing.normalise_address(appointment['address']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
                         if appointment['appointed_to']['company_number'] not in network.company_ids[network.company_ids['n'] < network.n]['company_id'].unique():
                             network.link_type = "Appointment"
-                            network.company_ids = network.company_ids.append({'company_id': appointment['appointed_to']['company_number'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
+                            # network.company_ids = network.company_ids.append({'company_id': appointment['appointed_to']['company_number'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
+                            new_company = {'company_id': appointment['appointed_to']['company_number'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                            if new_company not in new_companies:
+                                new_companies.append(new_company)
                 elif len(appointments['items']) > int(self.officer_appointments_maxsize):
                     network.maxsize_entities = network.maxsize_entities.append({'node':officer_id,'type': 'Officer', 'maxsize_type': 'Appointments', 'size': len(appointments['items'])}, ignore_index=True)
             if self.get_officer_correspondance_address:
@@ -301,7 +338,10 @@ class Network:
                 if correspondance_address:
                     if processing.normalise_address(correspondance_address['items'][0]['address']) not in network.addresses[network.addresses['n'] < network.n]['address'].unique():
                         network.link_type = "Officer Corresponance Address"
-                        network.addresses = network.addresses.append({'address': processing.normalise_address(correspondance_address['items'][0]['address']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
+                        new_address = {'address': processing.normalise_address(correspondance_address['items'][0]['address']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                        if new_address not in new_addresses:
+                            new_addresses.append(new_address)
+                        # network.addresses = network.addresses.append({'address': processing.normalise_address(correspondance_address['items'][0]['address']), 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
             if self.get_officer_duplicates:
                 duplicate_officers = api.get_duplicate_officers(officer_id)
                 if duplicate_officers:
@@ -309,18 +349,25 @@ class Network:
                         for duplicate in duplicate_officers:
                             network.link_type = "Duplicate Officer"
                             if duplicate['links']['self'].split('/')[2] not in network.officer_ids[network.officer_ids['n'] < network.n]['officer_id'].unique():
-                                network.officer_ids = network.officer_ids.append({'officer_id': duplicate['links']['self'].split('/')[2], 'name': duplicate['title'], 'n':network.n, 'link_type': network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
+                                new_officer = {'officer_id': duplicate['links']['self'].split('/')[2], 'name': duplicate['title'], 'n':network.n, 'link_type': network.link_type, 'node_type': network.node_type, 'node': network.node}
+                                if new_officer not in new_officers:
+                                    new_officers.append(new_officer)
+                                # network.officer_ids = network.officer_ids.append({'officer_id': duplicate['links']['self'].split('/')[2], 'name': duplicate['title'], 'n':network.n, 'link_type': network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
                     elif len(duplicate_officers) > int(self.officer_duplicates_maxsize):
                         network.maxsize_entities = network.maxsize_entities.append({'node':officer_id,'type': 'Officer', 'maxsize_type': 'Duplicates', 'size': len(duplicate_officers)}, ignore_index=True)
-                network.addresses = network.addresses.drop_duplicates().reset_index(drop=True)
-            network.officer_ids = network.officer_ids.drop_duplicates().reset_index(drop=True)
-            network.company_ids = network.company_ids.drop_duplicates().reset_index(drop=True)
+            network.addresses = network.addresses.append(new_addresses)
+            network.officer_ids = network.officer_ids.append(new_officers, ignore_index=True)
+            network.company_ids = network.company_ids.append(new_companies, ignore_index=True)
+            # network.addresses = network.addresses.drop_duplicates().reset_index(drop=True)
+            # network.officer_ids = network.officer_ids.drop_duplicates().reset_index(drop=True)
+            # network.company_ids = network.company_ids.drop_duplicates().reset_index(drop=True)
 
         def search_address(self, network, address, company_data):
+            new_companies = []
+            new_officers = []
             network.node_type = "Address"
             network.node = address
             if self.get_companies_at_address:
-                # database method here:
                 companies = {}
                 if company_data is not None:
                     companies['items'] = processing.get_companies_from_address_database(address, company_data)
@@ -328,15 +375,14 @@ class Network:
                     companies = api.get_companies_at_address(address)
                 if companies:
                     if self.companies_at_address_maxsize == None or len(companies['items']) < int(self.companies_at_address_maxsize or 0):
-                        company_ids = []
                         for company in companies['items']:
                             network.link_type = "Company at Address"
                             if company['company_number'] not in network.company_ids[network.company_ids['n'] < network.n]['company_id'].unique():
-                                company_ids.append({'company_id': company['company_number'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node})
-                        network.company_ids = network.company_ids.append(company_ids, ignore_index=True)
+                                new_company = {'company_id': company['company_number'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                                if new_company not in new_companies:
+                                    new_companies.append(new_company)
                     elif len(companies['items']) > int(self.companies_at_address_maxsize):
                         network.maxsize_entities = network.maxsize_entities.append({'node':address,'type': 'Address', 'maxsize_type': 'Companies', 'size': len(companies['items'])},ignore_index=True)
-
             if self.get_officers_at_address:
                 officers = api.get_officers_at_address(address)
                 if officers:
@@ -344,8 +390,13 @@ class Network:
                         for officer in officers:
                             network.link_type = "Officer at Address"
                             if officer['links']['self'].split('/')[2] not in network.officer_ids[network.officer_ids['n'] < network.n]['officer_id'].unique():
-                                network.officer_ids = network.officer_ids.append({'officer_id': officer['links']['self'].split('/')[2], 'name': officer['title'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
+                                new_officer = {'officer_id': officer['links']['self'].split('/')[2], 'name': officer['title'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                                if new_officer not in new_officers:
+                                    new_officers.append(new_officer)
+                                # network.officer_ids = network.officer_ids.append({'officer_id': officer['links']['self'].split('/')[2], 'name': officer['title'], 'n':network.n, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}, ignore_index=True)
                     elif len(officers) > int(self.officers_at_address_maxsize):
                         network.maxsize_entities = network.maxsize_entities.append({'node':address,'type': 'Address', 'maxsize_type': 'Officers', 'size': len(officers)},ignore_index=True)
-            network.officer_ids = network.officer_ids.drop_duplicates().reset_index(drop=True)
-            network.company_ids = network.company_ids.drop_duplicates().reset_index(drop=True)
+            network.officer_ids = network.officer_ids.append(new_officers, ignore_index=True)
+            network.company_ids = network.company_ids.append(new_companies, ignore_index=True)
+            # network.officer_ids = network.officer_ids.drop_duplicates().reset_index(drop=True)
+            # network.company_ids = network.company_ids.drop_duplicates().reset_index(drop=True)

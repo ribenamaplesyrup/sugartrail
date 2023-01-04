@@ -1,6 +1,6 @@
 from sugartrail import api
 import requests
-import pandas as pd
+# import pandas as pd
 import random
 import urllib
 import regex as re
@@ -18,12 +18,12 @@ def get_companies_from_address_database(address, company_data):
     companies['registered_office_address'] = [{'address_line_1': row['address_line_1'], 'address_line_2': row['address_line_2'], 'locality': row['locality'], 'postal_code': row['postal_code'], 'country': row['country']} for i,row in companies.iterrows()]
     return companies.to_dict('records')
 
-def load_company_data(company_data_filepath):
-    try:
-        company_data = pd.read_csv(company_data_filepath)
-        return company_data
-    except:
-        return
+# def load_company_data(company_data_filepath):
+#     try:
+#         company_data = pd.read_csv(company_data_filepath)
+#         return company_data
+#     except:
+#         return
 
 def get_nearby_postcode(postcode_string):
     url = "http://api.postcodes.io/postcodes/" + postcode_string[:-1] + "/autocomplete"

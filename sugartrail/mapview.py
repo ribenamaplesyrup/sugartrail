@@ -1,6 +1,5 @@
 from ipywidgets import HTML, Widget, Layout, Output, VBox, HBox, Textarea
 from ipyleaflet import Map, Marker, MarkerCluster, AwesomeIcon, AntPath, Popup
-import pandas as pd
 from datetime import datetime
 import functools
 from string import ascii_lowercase as alc
