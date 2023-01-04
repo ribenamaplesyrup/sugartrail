@@ -4,6 +4,17 @@ import requests
 import random
 import urllib
 import regex as re
+import collections
+
+def flatten(d, parent_key='', sep='.'):
+    items = []
+    for k, v in d.items():
+        new_key = parent_key + sep + k if parent_key else k
+        if isinstance(v, collections.MutableMapping):
+            items.extend(flatten(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
 
 def infer_postcode(address_string):
     postcode = re.findall(r'\b[A-Z]{1,2}[0-9][A-Z0-9]? [0-9][ABD-HJLNP-UW-Z]{2}\b', address_string)
@@ -89,6 +100,8 @@ def build_address_history(company_id):
                 addresses = []
                 entry = {}
                 entry["company_number"] = str(company_id)
+                entry["lat"] = ""
+                entry["lon"] = ""
                 entry["address"] = str(normalise_address(company_info_subset['registered_office_address']))
                 entry["start_date"] = str(address_changes['items'][0]['date'])
                 if 'date_of_cessation' in company_info_subset:
@@ -98,6 +111,8 @@ def build_address_history(company_id):
                 addresses.append(entry)
                 for i,change in enumerate(address_changes['items']):
                     entry = {}
+                    entry["lat"] = ""
+                    entry["lon"] = ""
                     entry["company_number"] = str(company_id)
                     if 'old_address' in change['description_values']:
                         entry["address"] = change['description_values']['old_address']
@@ -120,6 +135,8 @@ def build_address_history(company_id):
                         entry[address_keys[k]] = None
                 entry["company_number"] = str(company_id)
                 entry['address'] = normalise_address(entry['address'])
+                entry["lat"] = ""
+                entry["lon"] = ""
                 return [entry]
         else:
             address_history = []
@@ -131,6 +148,8 @@ def build_address_history(company_id):
                     entry[address_keys[k]] = None
             entry["company_number"] = str(company_id)
             entry['address'] = normalise_address(entry['address'])
+            entry["lat"] = ""
+            entry["lon"] = ""
             return [entry]
     else:
         return []
