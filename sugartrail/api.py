@@ -72,14 +72,15 @@ def get_duplicate_officers(officer_id):
         url = "https://api.company-information.service.gov.uk/search/officers?q=" + name
         response = make_request(url, name, 'officer name', 'officers')
         filtered_results = []
-        if 'items' in response:
-            for officer in response['items']:
-                if 'date_of_birth' in officer.keys() and 'date_of_birth' in officer_data.keys():
-                    if officer['date_of_birth'] == officer_data['date_of_birth'] and officer['links']['self'] != officer_self_link:
-                        filtered_results.append(officer)
-            return filtered_results
-        else:
-            return
+        if response:
+            if 'items' in response:
+                for officer in response['items']:
+                    if 'date_of_birth' in officer.keys() and 'date_of_birth' in officer_data.keys():
+                        if officer['date_of_birth'] == officer_data['date_of_birth'] and officer['links']['self'] != officer_self_link:
+                            filtered_results.append(officer)
+                return filtered_results
+            else:
+                return
 
 def get_companies_at_address(address):
     url = "https://api.company-information.service.gov.uk/advanced-search/companies?location=" + address + "&size=" + "5000"
