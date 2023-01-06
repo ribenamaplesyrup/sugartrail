@@ -1,10 +1,8 @@
 import requests
 import time
 import os
-# import config
 
 access_token = ""
-# username = config.config.APIKEY
 username = ""
 password = ""
 size = "5000"
