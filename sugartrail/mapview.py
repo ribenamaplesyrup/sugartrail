@@ -1,9 +1,7 @@
 from ipywidgets import HTML, Widget, Layout, Output, VBox, HBox, Textarea
 from ipyleaflet import Map, Marker, MarkerCluster, AwesomeIcon, AntPath, Popup
-import pandas as pd
 from datetime import datetime
 import functools
-from string import ascii_lowercase as alc
 import math
 
 def build_map(network, clear_widget=True):
@@ -13,10 +11,12 @@ def build_map(network, clear_widget=True):
     return m, path_table
 
 def get_address_path(network, company_id):
-    company_address_history = network.address_history.loc[network.address_history['company_number'] == company_id]
+    # company_address_history = network.address_history.loc[network.address_history['company_number'] == company_id]
+    company_address_history = list(filter(lambda d: d.get('company_number') == company_id, network.address_history))
+    company_address_history_sorted = sorted(company_address_history, key=lambda d: d['start_date'], reverse=True)
     address_path = []
-    for index, row in company_address_history.iterrows():
-        if math.isnan(float(row['lat'])) or math.isnan(float(row['lon'])):
+    for index, row in enumerate(company_address_history_sorted):
+        if not row['lat'] or not row['lon']:
             pass
         else:
             address_path.insert(0,[row['lat'], row['lon']])
@@ -26,21 +26,30 @@ def locations_from_origin_path(path, network):
     locations = []
     for node in path:
         if node['type'] == 'Company':
-            last_company_address_row = network.address_history.loc[network.address_history['company_number'] == node['id']].iloc[:1]
-            lat = last_company_address_row['lat'].item()
-            lon = last_company_address_row['lon'].item()
-            if math.isnan(float(lat)):
+            ###
+            company_address_history = list(filter(lambda d: d.get('company_number') == node['id'], network.address_history))
+            company_address_history_sorted = sorted(company_address_history, key=lambda d: d['start_date'], reverse=True)
+            last_company_address_row = {}
+            for address_row in company_address_history_sorted:
+                if address_row['lat'] and address_row['lon']:
+                    last_company_address_row = address_row
+                    break
+            # last_company_address_row = list(filter(lambda d: d.get('company_number') == node['id'], network.address_history))[0]
+            lat = last_company_address_row['lat']
+            lon = last_company_address_row['lon']
+            if not lat or not lon:
                 pass
             else:
-                locations.append([float(lat),float(lon)])
+                locations.append([lat,lon])
         elif node['type'] == 'Address':
-            address_row = network.addresses.loc[network.addresses['address'] == node['node']].iloc[:1]
-            lat = address_row['lat'].item()
-            lon = address_row['lon'].item()
-            if math.isnan(float(lat)) or math.isnan(float(lon)):
+            address_row = list(filter(lambda d: d.get('address') == node['node'], network.addresses))[0]
+            # address_row = network.addresses.loc[network.addresses['address'] == node['node']].iloc[:1]
+            lat = address_row['lat']
+            lon = address_row['lon']
+            if not lat or not lon:
                 pass
             else:
-                locations.append([float(lat),float(lon)])
+                locations.append([lat,lon])
     return locations
 
 def on_button_clicked(address_path, path, location, address_trail, path_table, origin_trail, locations_from_origin, **kwargs):
@@ -98,28 +107,30 @@ def get_marker_data(network,address_trail, origin_trail, path_table):
     address_trail=address_trail
     origin_trail=origin_trail
     ms = []
-    for index, row in network.address_history.iterrows():
-        path = ""
-        locations_from_origin = ""
-        message = HTML()
-        marker_color = "green"
-        company = network.companies.loc[network.companies['company_number'] == row['company_number']]
-        company_name = company['company_name'].item()
-        company_status = company['company_status'].item()
-        if company_status == "active":
-            if row['end_date'] != None:
-                marker_color = "red"
-        else:
-            marker_color = "black"
-        address = row['address']
-        path = network.find_path(str(row['company_number']))
-        locations_from_origin = locations_from_origin_path(path, network)
-        message.value = str(company_name) + "<hr>" + str(address)
-        icon = AwesomeIcon(
-        marker_color=marker_color
-        )
-        address_path = get_address_path(network,str(row['company_number']))
-        marker = Marker(icon=icon, opacity=1, location=(row['lat'], row['lon']), draggable=False, popup=message, title="Address")
-        marker.on_click(functools.partial(on_button_clicked, address_path=address_path, address_trail=address_trail, path_table=path_table, origin_trail=origin_trail, path=path, location=(row['lat'], row['lon']), locations_from_origin = locations_from_origin))
-        ms.append(marker)
+    for index, row in enumerate(network.address_history):
+        if row['lat'] and row['lon']:
+            path = ""
+            locations_from_origin = ""
+            message = HTML()
+            marker_color = "green"
+            company = list(filter(lambda d: d.get('company_number') == row['company_number'], network.companies))[0]
+            # company = network.companies.loc[network.companies['company_number'] == row['company_number']]
+            company_name = company['company_name']
+            company_status = company['company_status']
+            if company_status == "active":
+                if row['end_date']:
+                    marker_color = "red"
+            else:
+                marker_color = "black"
+            address = row['address']
+            path = network.find_path(str(row['company_number']))
+            locations_from_origin = locations_from_origin_path(path, network)
+            message.value = str(company_name) + "<hr>" + str(address)
+            icon = AwesomeIcon(
+            marker_color=marker_color
+            )
+            address_path = get_address_path(network,str(row['company_number']))
+            marker = Marker(icon=icon, opacity=1, location=(row['lat'], row['lon']), draggable=False, popup=message, title="Address")
+            marker.on_click(functools.partial(on_button_clicked, address_path=address_path, address_trail=address_trail, path_table=path_table, origin_trail=origin_trail, path=path, location=(row['lat'], row['lon']), locations_from_origin = locations_from_origin))
+            ms.append(marker)
     return ms
