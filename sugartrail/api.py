@@ -1,7 +1,7 @@
 import requests
 import time
 import os
-import config
+# import config
 
 access_token = ""
 # username = config.config.APIKEY
