@@ -34,12 +34,13 @@ def locations_from_origin_path(path, network):
                     last_company_address_row = address_row
                     break
             # last_company_address_row = list(filter(lambda d: d.get('company_number') == node['id'], network.address_history))[0]
-            lat = last_company_address_row['lat']
-            lon = last_company_address_row['lon']
-            if not lat or not lon:
-                pass
-            else:
-                locations.append([lat,lon])
+            if last_company_address_row:
+                lat = last_company_address_row['lat']
+                lon = last_company_address_row['lon']
+                if not lat or not lon:
+                    pass
+                else:
+                    locations.append([lat,lon])
         elif node['type'] == 'Address':
             address_row = list(filter(lambda d: d.get('address') == node['node'], network.addresses))[0]
             # address_row = network.addresses.loc[network.addresses['address'] == node['node']].iloc[:1]
