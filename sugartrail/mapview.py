@@ -11,7 +11,6 @@ def build_map(network, clear_widget=True):
     return m, path_table
 
 def get_address_path(network, company_id):
-    # company_address_history = network.address_history.loc[network.address_history['company_number'] == company_id]
     company_address_history = list(filter(lambda d: d.get('company_number') == company_id, network.address_history))
     company_address_history_sorted = sorted(company_address_history, key=lambda d: d['start_date'], reverse=True)
     address_path = []

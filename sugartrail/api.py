@@ -22,7 +22,6 @@ def make_request(url, input, input_type, response_type):
         try:
             response = requests.get(url, auth=basic_auth)
             response.raise_for_status()
-            # print("here")
             if response.status_code == 200:
                 return response.json()
         except requests.exceptions.RequestException as err:
