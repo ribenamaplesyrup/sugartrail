@@ -92,10 +92,10 @@ class Network:
             else:
                 print("No input provided. Please provide either officer_id, company_id or address value as input.")
 
-    def save(self, filename):
+    def save(self, filename, location='../assets/networks/'):
         network_data = {k: v for k, v in self.__dict__.items() if k != 'hop' and k != 'file'}
         saved_network = json.dumps(network_data)
-        f = open(f'../assets/networks/{filename}', 'w')
+        f = open(f'{filename}', 'w')
         f.write(saved_network)
         f.close
 
