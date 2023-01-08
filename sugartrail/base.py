@@ -168,6 +168,10 @@ class Network:
         self.companies.extend(companies)
 
     def run_map_preprocessing(self):
+        for company in self.company_ids:
+            if company['n'] == self.n:
+                address_history = processing.build_address_history(company['company_id'])
+                self.address_history.extend(address_history)
         self.get_company_from_id()
         self.add_company_names()
         self.get_coords()
