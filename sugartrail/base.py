@@ -168,15 +168,20 @@ class Network:
         self.companies.extend(companies)
 
     def run_map_preprocessing(self):
-        for company in self.company_ids:
-            if company['n'] == self.n:
-                address_history = processing.build_address_history(company['company_id'])
-                self.address_history.extend(address_history)
+        self.update_address_history()
         self.get_company_from_id()
         self.add_company_names()
         self.get_coords()
         self.address_history = [dict(t) for t in {tuple(d.items()) for d in self.address_history}]
         return
+
+    def update_address_history(self):
+        for i, company in enumerate(self.company_ids):
+            IPython.display.clear_output(wait=True)
+            print("Updated " + str(i+1) + "/" + str(len(self.company_ids)) + " company addresses.")
+            if company['n'] == self.n:
+                address_history = processing.build_address_history(company['company_id'])
+                self.address_history.extend(address_history)
 
     def get_coords(self):
         for i, row in enumerate(self.addresses):
