@@ -168,6 +168,7 @@ class Network:
         self.companies.extend(companies)
 
     def run_map_preprocessing(self):
+        # merge some of these methods:
         self.update_address_history()
         self.get_company_from_id()
         self.add_company_names()
