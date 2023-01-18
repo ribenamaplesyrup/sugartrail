@@ -7,6 +7,7 @@ import regex as re
 import collections
 
 def flatten(d, parent_key='', sep='.'):
+    """Flatten nested dictionary."""
     items = []
     for k, v in d.items():
         new_key = parent_key + sep + k if parent_key else k
@@ -17,6 +18,7 @@ def flatten(d, parent_key='', sep='.'):
     return dict(items)
 
 def infer_postcode(address_string):
+    """Extracts UK postcode from input address string with regex."""
     postcode = re.findall(r'\b[A-Z]{1,2}[0-9][A-Z0-9]? [0-9][ABD-HJLNP-UW-Z]{2}\b', address_string)
     if postcode:
         return postcode[0]
@@ -24,12 +26,15 @@ def infer_postcode(address_string):
         return
 
 def get_companies_from_address_database(address, company_data):
+    """Searches input dataframe (company_data) for companies at input address
+    (address) and returns list of dicts."""
     companies = company_data[company_data[' RegAddress.AddressLine2'].apply(lambda x: str(x).upper() in address.upper()) | company_data['RegAddress.AddressLine1'].apply(lambda x: str(x).upper() in address.upper()) & company_data['RegAddress.PostCode'].apply(lambda x: str(x).upper() in address.upper())]
     companies = companies.rename(columns={'CompanyName': 'company_name', ' CompanyNumber': 'company_number', 'CompanyStatus': 'company_status', 'CompanyCategory': 'company_type', 'RegAddress.AddressLine1': 'address_line_1', ' RegAddress.AddressLine2': 'address_line_2', 'RegAddress.PostCode': 'postal_code', 'RegAddress.PostTown': 'locality', 'RegAddress.Country': 'country', 'IncorporationDate':'date_of_creation', 'DissolutionDate': 'date_of_cessation'})
     companies['registered_office_address'] = [{'address_line_1': row['address_line_1'], 'address_line_2': row['address_line_2'], 'locality': row['locality'], 'postal_code': row['postal_code'], 'country': row['country']} for i,row in companies.iterrows()]
     return companies.to_dict('records')
 
 def get_nearby_postcode(postcode_string):
+    """Find closest nearby postcode to input postcode (postcode_string)."""
     url = "http://api.postcodes.io/postcodes/" + postcode_string[:-1] + "/autocomplete"
     response = requests.get(url).json()
     if response['result'] != None:
@@ -44,6 +49,7 @@ def get_nearby_postcode(postcode_string):
         return closest_address["postcode"]
 
 def get_coords_from_address(address_string):
+    """Attempt retrieval of coords for input address string."""
     address = urllib.parse.quote(address_string)
     url = 'https://nominatim.openstreetmap.org/search/' + urllib.parse.quote(address) +'?format=json'
     response = requests.get(url).json()
@@ -70,11 +76,14 @@ def get_coords_from_address(address_string):
             print("No postcode found for: " + address_string)
 
 def normalise_name(name):
+    """Move first word (often surname) from the beginning to the end of string."""
     name_list = name.replace(',','').split(" ")
     name_list.append(name_list.pop(0))
     return ' '.join(name_list)
 
 def process_address_changes(address_changes):
+    """Attempt retrieval of 'new_address' value if Companies House record is
+    incomplete."""
     for i in reversed(range(1,len(address_changes['items']))):
         if 'new_address' not in address_changes['items'][i]['description_values'].keys():
             if 'old_address' in address_changes['items'][i-1]['description_values'].keys():
@@ -82,6 +91,8 @@ def process_address_changes(address_changes):
     return address_changes
 
 def build_address_history(company_id):
+    """Returns a list of dicts containing historic addresses for input company
+    (company_id)."""
     company_info = api.get_company(company_id)
     if company_info:
         company_info_subset = {k:company_info[k] for k in ("date_of_creation","date_of_cessation","registered_office_address") if k in company_info}
@@ -89,6 +100,7 @@ def build_address_history(company_id):
         address_keys = ('start_date','end_date','address')
         if address_changes:
             if address_changes['items']:
+                # attempt to retrieve any missing items within address changes
                 address_changes = process_address_changes(address_changes)
                 addresses = []
                 entry = {}
@@ -148,6 +160,7 @@ def build_address_history(company_id):
         return []
 
 def normalise_address(address_dict):
+    """Joins address key values into a single str."""
     address_list = []
     for key in ['premises','address_line_1', 'locality','postal_code', 'country']:
                 if key in address_dict:
