@@ -68,7 +68,8 @@ class Network:
                 'n':self.n,
                 'link_type': None,
                 'node_type': None,
-                'node': None}]
+                'node': None
+                }]
         else:
             print(f"Officer with ID:{str(new_value)} not found")
             self._officer_id = None
@@ -90,7 +91,8 @@ class Network:
                 'n':self.n,
                 'link_type': '',
                 'node_type': '',
-                'node': ''}]
+                'node': ''
+                }]
             self.companies = [dict(sugartrail.processing.flatten(company_info))]
         else:
             print(f"Company with ID:{str(new_value)} not found")
@@ -106,11 +108,13 @@ class Network:
     def address(self, new_value):
         """address setter."""
         self._address = new_value
-        self.addresses = [dict({'address': self._address,
-         'n':self.n,
-         'link_type': '',
-         'node_type': '',
-         'node': ''})]
+        self.addresses = [dict({
+            'address': self._address,
+            'n':self.n,
+            'link_type': '',
+            'node_type': '',
+            'node': ''
+            })]
 
     @property
     def file(self):
@@ -254,9 +258,20 @@ class Network:
         # iterate through each path from selected company to seed company:
         for i, row in enumerate(network_link_type_rows):
             # insert end of path node:
-            path.insert(0, {'hop': row['n'], "type": "Company", "id": select_company, "node": row['company_name'], "node_type": row['link_type'], "link_id": row['node']})
+            path.insert(0, {
+                'hop': row['n'],
+                 "type": "Company",
+                 "id": select_company,
+                 "node": row['company_name'],
+                 "node_type": row['link_type'],
+                 "link_id": row['node']
+                 })
             # define search terms for locating connected nodes:
-            search_terms = [{'n': row['n']-1, 'node_type':row['node_type'], 'node':row['node']}]
+            search_terms = [{
+                'n': row['n']-1,
+                'node_type':row['node_type'],
+                'node':row['node']
+                }]
             # iterate through degrees of seperation till origin is reached:
             for j in range(row['n']-1,-1,-1):
                 for term in search_terms:
@@ -265,41 +280,95 @@ class Network:
                             select_rows = list(filter(lambda d: d.get('address') == term['node'] and d.get('n') == j, self.addresses))
                             for k, select_row in enumerate(select_rows):
                                 if select_row['n'] == 0:
-                                    origin = {'hop': j, "type": "Address", "id": select_row['address'], "node": select_row['address'], "node_type": "", "link_id": ""}
+                                    origin = {
+                                        'hop': j,
+                                        "type": "Address",
+                                        "id": select_row['address'],
+                                        "node": select_row['address'],
+                                        "node_type": "",
+                                        "link_id": ""
+                                        }
                                     if origin not in path:
                                         path.insert(0, origin)
                                         break
                                 else:
-                                    item = {'hop': j, "type": "Address", "id": select_row['address'], "node": select_row['address'], "node_type": select_row['link_type'], "link_id": select_row['node']}
+                                    item = {
+                                        'hop': j,
+                                        "type": "Address",
+                                        "id": select_row['address'],
+                                        "node": select_row['address'],
+                                        "node_type": select_row['link_type'],
+                                        "link_id": select_row['node']
+                                        }
                                     if item not in path:
                                         path.insert(0, item)
-                                        search_terms.append({'n': j-1, 'node_type':select_row['node_type'], 'node':select_row['node']})
+                                        search_terms.append({
+                                            'n': j-1,
+                                            'node_type':select_row['node_type'],
+                                            'node':select_row['node']
+                                            })
                         elif term['node_type'] == "Company":
                             select_rows = list(filter(lambda d: d.get('company_id') == term['node'] and d.get('n') == j, self.company_ids))
                             for l, select_row in enumerate(select_rows):
                                 if select_row['n'] == 0:
-                                    origin = {'hop': j, "type": "Company", "id": select_row['company_id'], "node": select_row['company_name'], "node_type": "", "link_id": ""}
+                                    origin = {
+                                        'hop': j,
+                                        "type": "Company",
+                                        "id": select_row['company_id'],
+                                        "node": select_row['company_name'],
+                                        "node_type": "",
+                                        "link_id": ""
+                                        }
                                     if origin not in path:
                                         path.insert(0, origin)
                                         break
                                 else:
-                                    item = {'hop': j, "type": "Company", "id": select_row['company_id'], "node": select_row['company_name'], "node_type": select_row['link_type'], "link_id": select_row['node']}
+                                    item = {
+                                        'hop': j,
+                                        "type": "Company",
+                                        "id": select_row['company_id'],
+                                        "node": select_row['company_name'],
+                                        "node_type": select_row['link_type'],
+                                        "link_id": select_row['node']
+                                        }
                                     if item not in path:
                                         path.insert(0, item)
-                                        search_terms.append({'n': j-1, 'node_type':select_row['node_type'], 'node':select_row['node']})
+                                        search_terms.append({
+                                            'n': j-1,
+                                            'node_type':select_row['node_type'],
+                                            'node':select_row['node']
+                                            })
                         elif term['node_type'] == "Person":
                             select_rows = list(filter(lambda d: d.get('officer_id') == term['node'] and d.get('n') == j, self.officer_ids))
                             for m, select_row in enumerate(select_rows):
                                 if select_row['link_type'] == 0:
-                                    origin = {'hop': j, "type": "Person", "id": select_row["officer_id"], "node": select_row['name'], "node_type": "", "link_id": ""}
+                                    origin = {
+                                        'hop': j,
+                                        "type": "Person",
+                                        "id": select_row["officer_id"],
+                                        "node": select_row['name'],
+                                        "node_type": "",
+                                        "link_id": ""
+                                        }
                                     if origin not in path:
                                         path.insert(0, origin)
                                         break
                                 else:
-                                    item = {'hop': j, "type": "Person", "id": select_row["officer_id"], "node": str(select_row['name']), "node_type": str(select_row['link_type']), "link_id": select_row['node']}
+                                    item = {
+                                        'hop': j,
+                                        "type": "Person",
+                                        "id": select_row["officer_id"],
+                                        "node": str(select_row['name']),
+                                        "node_type": str(select_row['link_type']),
+                                        "link_id": select_row['node']
+                                        }
                                     if item not in path:
                                         path.insert(0, item)
-                                        search_terms.append({'n': j-1, 'node_type':select_row['node_type'], 'node':select_row['node']})
+                                        search_terms.append({
+                                            'n': j-1,
+                                            'node_type':select_row['node_type'],
+                                            'node':select_row['node']
+                                            })
                         else:
                             print(f"{row['node_type']} is invalid node_type")
                             break
@@ -410,17 +479,16 @@ class Network:
             lower_n_officers = [officer['officer_id'] for officer in list(filter(lambda d: d.get('n') < network.n+1, network.officer_ids))]
             if officers:
                 for officer in officers:
-                    # if 'address' in officer:
-                    #     # check address not already in the network
-                    #     if sugartrail.processing.normalise_address(officer['address']) not in lower_n_addresses:
-                    #         network.link_type = "Officer Corresponance Address"
-                    #         new_address = {'address': sugartrail.processing.normalise_address(officer['address']), 'n':network.n+1, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
-                    #         if new_address not in new_addresses:
-                    #             new_addresses.append(new_address)
-                    #     # check not already in the network
                     if officer['links']['officer']['appointments'].split('/')[2] not in lower_n_officers:
                         network.link_type = "Officer"
-                        new_officer = {'officer_id': str(officer['links']['officer']['appointments'].split('/')[2]), 'name': sugartrail.processing.normalise_name(officer['name']), 'n':network.n+1, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                        new_officer = {
+                            'officer_id': str(officer['links']['officer']['appointments'].split('/')[2]),
+                            'name': sugartrail.processing.normalise_name(officer['name']),
+                            'n':network.n+1,
+                            'link_type':network.link_type,
+                            'node_type': network.node_type,
+                            'node': network.node
+                            }
                         if new_officer not in new_officers:
                             new_officers.append(new_officer)
             if self.get_psc_correspondance_address:
@@ -432,7 +500,13 @@ class Network:
                             if "address" in person:
                                 network.link_type = "Person of Significant Control Address"
                                 if sugartrail.processing.normalise_address(person['address']) not in lower_n_addresses:
-                                    new_address = {'address': sugartrail.processing.normalise_address(person['address']), 'n':network.n+1, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                                    new_address = {
+                                        'address': sugartrail.processing.normalise_address(person['address']),
+                                        'n':network.n+1,
+                                        'link_type':network.link_type,
+                                        'node_type': network.node_type,
+                                        'node': network.node
+                                        }
                                     if new_address not in new_addresses:
                                         new_addresses.append(new_address)
             if self.get_company_address_history:
@@ -443,12 +517,23 @@ class Network:
                     network.link_type = "Historic Address"
                     if 'address' in address:
                         if address['address'] not in lower_n_addresses:
-                            new_address = {'address': address['address'], 'n':network.n+1, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                            new_address = {
+                                'address': address['address'],
+                                'n':network.n+1,
+                                'link_type':network.link_type,
+                                'node_type': network.node_type,
+                                'node': network.node
+                                }
                             if new_address not in new_addresses:
-                                new_addresses.append(dict({'address': address['address'], 'n':network.n+1, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}))
+                                new_addresses.append(dict({
+                                    'address': address['address'],
+                                    'n':network.n+1,
+                                    'link_type':network.link_type,
+                                    'node_type': network.node_type,
+                                    'node': network.node
+                                    }))
             network.addresses.extend(new_addresses)
             network.officer_ids.extend(new_officers)
-
 
         def search_officer_id(self, network, officer_id):
             """Gets officers, companies and addresses connected to input officer
@@ -467,22 +552,45 @@ class Network:
                     for appointment in appointments['items']:
                         if sugartrail.processing.normalise_address(appointment['address']) not in lower_n_addresses:
                             network.link_type = "Appointment Address"
-                            new_address = {'address': sugartrail.processing.normalise_address(appointment['address']), 'n':network.n+1, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                            new_address = {
+                                'address': sugartrail.processing.normalise_address(appointment['address']),
+                                'n':network.n+1,
+                                'link_type':network.link_type,
+                                'node_type': network.node_type,
+                                'node': network.node
+                                }
                             if new_address not in new_addresses:
                                 new_addresses.append(new_address)
                         if appointment['appointed_to']['company_number'] not in lower_n_companies:
                             network.link_type = "Appointment"
-                            new_company = {'company_id': appointment['appointed_to']['company_number'], 'n':network.n+1, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                            new_company = {
+                                'company_id': appointment['appointed_to']['company_number'],
+                                'n':network.n+1,
+                                'link_type':network.link_type,
+                                'node_type': network.node_type,
+                                'node': network.node
+                                }
                             if new_company not in new_companies:
                                 new_companies.append(new_company)
                 elif len(appointments['items']) > int(self.officer_appointments_maxsize):
-                    network.maxsize_entities.append(dict({'node':officer_id,'type': 'Officer', 'maxsize_type': 'Appointments', 'size': len(appointments['items'])}))
+                    network.maxsize_entities.append(dict({
+                        'node':officer_id,
+                        'type': 'Officer',
+                        'maxsize_type': 'Appointments',
+                        'size': len(appointments['items'])
+                        }))
             if self.get_officer_correspondance_address:
                 correspondance_address = sugartrail.api.get_correspondance_address(officer_id)
                 if correspondance_address:
                     if sugartrail.processing.normalise_address(correspondance_address['items'][0]['address']) not in lower_n_addresses:
                         network.link_type = "Officer Corresponance Address"
-                        new_address = {'address': sugartrail.processing.normalise_address(correspondance_address['items'][0]['address']), 'n':network.n+1, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                        new_address = {
+                            'address': sugartrail.processing.normalise_address(correspondance_address['items'][0]['address']),
+                            'n':network.n+1,
+                            'link_type':network.link_type,
+                            'node_type': network.node_type,
+                            'node': network.node
+                            }
                         if new_address not in new_addresses:
                             new_addresses.append(new_address)
             if self.get_officer_duplicates:
@@ -492,11 +600,22 @@ class Network:
                         for duplicate in duplicate_officers:
                             network.link_type = "Duplicate Officer"
                             if duplicate['links']['self'].split('/')[2] not in lower_n_officers:
-                                new_officer = {'officer_id': duplicate['links']['self'].split('/')[2], 'name': duplicate['title'], 'n':network.n+1, 'link_type': network.link_type, 'node_type': network.node_type, 'node': network.node}
+                                new_officer = {
+                                    'officer_id': duplicate['links']['self'].split('/')[2],
+                                    'name': duplicate['title'], 'n':network.n+1,
+                                    'link_type': network.link_type,
+                                    'node_type': network.node_type,
+                                    'node': network.node
+                                    }
                                 if new_officer not in new_officers:
                                     new_officers.append(new_officer)
                     elif len(duplicate_officers) > int(self.officer_duplicates_maxsize):
-                        network.maxsize_entities.append(dict({'node':officer_id,'type': 'Officer', 'maxsize_type': 'Duplicates', 'size': len(duplicate_officers)}))
+                        network.maxsize_entities.append(dict({
+                            'node':officer_id,
+                            'type': 'Officer',
+                            'maxsize_type': 'Duplicates',
+                            'size': len(duplicate_officers)
+                            }))
             network.addresses.extend(new_addresses)
             network.officer_ids.extend(new_officers)
             network.company_ids.extend(new_companies)
@@ -523,11 +642,22 @@ class Network:
                             for company in companies['items']:
                                 network.link_type = "Company at Address"
                                 if company['company_number'] not in lower_n_companies:
-                                    new_company = {'company_id': company['company_number'], 'n':network.n+1, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                                    new_company = {
+                                        'company_id': company['company_number'],
+                                        'n':network.n+1,
+                                        'link_type':network.link_type,
+                                        'node_type': network.node_type,
+                                        'node': network.node
+                                        }
                                     if new_company not in new_companies:
                                         new_companies.append(new_company)
                         elif len(companies['items']) > int(self.companies_at_address_maxsize):
-                            network.maxsize_entities.append(dict({'node':address,'type': 'Address', 'maxsize_type': 'Companies', 'size': len(companies['items'])}))
+                            network.maxsize_entities.append(dict({
+                                'node':address,
+                                'type': 'Address',
+                                'maxsize_type': 'Companies',
+                                'size': len(companies['items'])
+                                }))
             if self.get_officers_at_address:
                 officers = sugartrail.api.get_officers_at_address(address)
                 if officers:
@@ -536,10 +666,22 @@ class Network:
                             if 'links' and 'title' in officer:
                                 network.link_type = "Officer at Address"
                                 if officer['links']['self'].split('/')[2] not in lower_n_officers:
-                                    new_officer = {'officer_id': officer['links']['self'].split('/')[2], 'name': officer['title'], 'n':network.n+1, 'link_type':network.link_type, 'node_type': network.node_type, 'node': network.node}
+                                    new_officer = {
+                                        'officer_id': officer['links']['self'].split('/')[2],
+                                        'name': officer['title'],
+                                        'n':network.n+1,
+                                        'link_type': network.link_type,
+                                        'node_type': network.node_type,
+                                        'node': network.node
+                                    }
                                     if new_officer not in new_officers:
                                         new_officers.append(new_officer)
                     elif len(officers) > int(self.officers_at_address_maxsize):
-                        network.maxsize_entities.append(dict({'node':address,'type': 'Address', 'maxsize_type': 'Officers', 'size': len(officers)}))
+                        network.maxsize_entities.append(dict({
+                            'node':address,
+                            'type': 'Address',
+                            'maxsize_type': 'Officers',
+                            'size': len(officers)
+                        }))
             network.officer_ids.extend(new_officers)
             network.company_ids.extend(new_companies)

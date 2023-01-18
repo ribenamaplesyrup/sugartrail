@@ -19,28 +19,30 @@ def load_map_data(network):
     through other companies towards the origin company."""
     # initialise historic address trail antpath
     address_trail = AntPath(
-    locations=[],
-    dash_array=[1,10],
-    delay=1000,
-    color='#ed2f2f',
-    pulse_color='#FFFFFF'
+        locations=[],
+        dash_array=[1,10],
+        delay=1000,
+        color='#ed2f2f',
+        pulse_color='#FFFFFF'
     )
     # initialise trail from company to origin antpath
     origin_trail = AntPath(
-    locations=[],
-    dash_array=[1,10],
-    delay=1000,
-    color='#000000',
-    pulse_color='#FFFFFF'
+        locations=[],
+        dash_array=[1,10],
+        delay=1000,
+        color='#000000',
+        pulse_color='#FFFFFF'
     )
     # initialise table for printing company to origin trail
     path_table = HTML(
-    value=""
+        value=""
     )
     # initialise map
-    m = Map(center=(50, 0),
-            zoom=5,
-            layout=Layout(width='90%', height='650px'))
+    m = Map(
+        center=(50, 0),
+        zoom=5,
+        layout=Layout(width='90%', height='650px')
+    )
     # add antpath layers
     m.add_layer(address_trail)
     m.add_layer(origin_trail)
@@ -77,13 +79,29 @@ def get_marker_data(network,address_trail, origin_trail, path_table):
             message = HTML()
             message.value = str(company_name) + "<hr>" + str(address)
             icon = AwesomeIcon(
-            marker_color=marker_color
+                marker_color=marker_color
             )
             # find historic addresses path for company
             address_path = get_address_path(network,str(row['company_number']))
-            marker = Marker(icon=icon, opacity=1, location=(row['lat'], row['lon']), draggable=False, popup=message, title="Address")
+            marker = Marker(
+                icon=icon,
+                opacity=1,
+                location=(row['lat'],
+                row['lon']),
+                draggable=False,
+                popup=message,
+                title="Address"
+                )
             # attach on click behavoir for marker
-            marker.on_click(functools.partial(on_button_clicked, address_path=address_path, address_trail=address_trail, path_table=path_table, origin_trail=origin_trail, path=path, location=(row['lat'], row['lon']), locations_from_origin = locations_from_origin))
+            marker.on_click(functools.partial(
+                on_button_clicked,
+                address_path=address_path,
+                address_trail=address_trail,
+                path_table=path_table,
+                origin_trail=origin_trail,
+                path=path, location=(row['lat'], row['lon']),
+                locations_from_origin = locations_from_origin
+                ))
             markers.append(marker)
     return markers
 
