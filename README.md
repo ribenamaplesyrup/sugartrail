@@ -8,7 +8,7 @@ Sugartrail is a network analysis and visualisation tool developed to make it eas
 
 You will require an API key from Companies House to get data. First you will need to create a live application to get an API key which you can do by following the [Companies House guide](https://developer.company-information.service.gov.uk/how-to-create-an-application).
 
-## Usage
+## No-Install Usage
 
 A hosted demo of the Sugartrail dashboard can be accessed [here](https://stark-island-99644.herokuapp.com/) (might take a few seconds to load the page). 
 
