@@ -1,6 +1,6 @@
 # Sugartrail
 
-![title](assets/images/candystreet.png)
+![title](assets/images/sweetstreet.png)
 
 Sugartrail is a network analysis and visualisation tool developed to make it easier and faster for researchers to explore connections between companies, officers and addresses within Companies House.
 
