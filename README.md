@@ -10,7 +10,8 @@ You will require an API key from Companies House to get data. First you will nee
 
 ## Usage
 
-A hosted demo of the Sugartrail dashboard can be accessed [here](https://stark-island-99644.herokuapp.com/) (might take a few seconds to load the page).
+A hosted demo of the Sugartrail dashboard can be accessed [here](https://stark-island-99644.herokuapp.com/) (might take a few seconds to load the page). You can watch a demo of how to use the dashboard: 
+[![img](assets/images/demo.png)](https://www.youtube.com/watch?v=evPXGTj33LQ)
 
 ## Installation
 
