@@ -73,7 +73,8 @@ def get_coords_from_address(address_string):
                 else:
                     print("failed")
         else:
-            print("No postcode found for: " + address_string)
+            # print("No postcode found for: " + address_string)
+            pass
 
 def normalise_name(name):
     """Move first word (often surname) from the beginning to the end of string."""

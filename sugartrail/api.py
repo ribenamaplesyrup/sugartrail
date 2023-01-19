@@ -2,6 +2,7 @@ import requests
 import time
 import os
 import functools
+from ratelimit import limits, RateLimitException, sleep_and_retry
 
 access_token = ""
 username = ""
@@ -28,10 +29,12 @@ def test():
     else:
         return False
 
-# @auth
+# Companies House API allows 600 requests every 5 mins
+@sleep_and_retry
+@limits(calls=120, period=60)
 def make_request(url, input, input_type, response_type):
     """Query Companies House API."""
-    time.sleep(0.5)
+    # time.sleep(0.5)
     try:
         response = requests.get(url, auth=basic_auth)
         response.raise_for_status()
