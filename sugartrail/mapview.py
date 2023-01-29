@@ -64,52 +64,53 @@ def get_marker_data(network,address_trail, origin_trail, path_table):
         if row['lat'] and row['lon']:
             marker_color = "green"
             # locate company at historic address
-            company = list(filter(lambda d: d.get('company_number') == row['company_number'], network.companies))[0]
-            company_name = company['company_name']
-            company_status = company['company_status']
-            if company_status == "active":
-                if row['end_date']:
-                    marker_color = "red"
-            else:
-                marker_color = "black"
-            address = row['address']
-            # find path from company to origin
-            path = network.find_path(str(row['company_number']))
-            locations_from_origin = locations_from_origin_path(path, network)
-            message = HTML()
-            message.value = str(company_name) + "<hr>" + str(address)
-            icon = AwesomeIcon(
-                marker_color=marker_color
-            )
-            # find historic addresses path for company
-            address_path = get_address_path(network,str(row['company_number']))
-            marker = Marker(
-                icon=icon,
-                opacity=1,
-                location=(row['lat'],
-                row['lon']),
-                draggable=False,
-                popup=message,
-                title="Address"
+            company = list(filter(lambda d: d.get('company_number') == row['company_number'], network.company_records))
+            if company:
+                company_name = company[0]['company_name']
+                company_status = company[0]['company_status']
+                if company_status == "active":
+                    if row['end_date']:
+                        marker_color = "red"
+                else:
+                    marker_color = "black"
+                address = row['address']
+                # find path from company to origin
+                path = network.find_path(str(row['company_number']))
+                locations_from_origin = locations_from_origin_path(path, network)
+                message = HTML()
+                message.value = str(company_name) + "<hr>" + str(address)
+                icon = AwesomeIcon(
+                    marker_color=marker_color
                 )
-            # attach on click behavoir for marker
-            marker.on_click(functools.partial(
-                on_button_clicked,
-                address_path=address_path,
-                address_trail=address_trail,
-                path_table=path_table,
-                origin_trail=origin_trail,
-                path=path, location=(row['lat'], row['lon']),
-                locations_from_origin = locations_from_origin
-                ))
-            markers.append(marker)
+                # find historic addresses path for company
+                address_path = get_address_path(network,str(row['company_number']))
+                marker = Marker(
+                    icon=icon,
+                    opacity=1,
+                    location=(row['lat'],
+                    row['lon']),
+                    draggable=False,
+                    popup=message,
+                    title="Address"
+                    )
+                # attach on click behavoir for marker
+                marker.on_click(functools.partial(
+                    on_button_clicked,
+                    address_path=address_path,
+                    address_trail=address_trail,
+                    path_table=path_table,
+                    origin_trail=origin_trail,
+                    path=path, location=(row['lat'], row['lon']),
+                    locations_from_origin = locations_from_origin
+                    ))
+                markers.append(marker)
     return markers
 
 def locations_from_origin_path(path, network):
     """Returns list of addresses found within origin path."""
     locations = []
     for node in path:
-        if node['type'] == 'Company':
+        if node['node_type'] == 'Company':
             # finds location for company node
             company_address_history = list(filter(lambda d: d.get('company_number') == node['id'], network.address_history))
             company_address_history_sorted = sorted(company_address_history, key=lambda d: d['start_date'], reverse=True)
@@ -125,14 +126,13 @@ def locations_from_origin_path(path, network):
                     pass
                 else:
                     locations.append([lat,lon])
-        elif node['type'] == 'Address':
-            address_row = list(filter(lambda d: d.get('address') == node['node'], network.addresses))[0]
-            lat = address_row['lat']
-            lon = address_row['lon']
-            if not lat or not lon:
-                pass
-            else:
+        elif node['node_type'] == 'Address':
+            if 'lat' in network.graph[node['id']]:
+                lat = network.graph[node['id']]['lat']
+                lon = network.graph[node['id']]['lon']
                 locations.append([lat,lon])
+            else:
+                pass
     return locations
 
 def get_address_path(network, company_id):
@@ -158,12 +158,12 @@ def on_button_clicked(address_path, path, location, address_trail, path_table, o
 def html_table_generator(path):
     """Generates table for displaying origin path data."""
     table_style = '<style>table {font-family: arial, sans-serif;border-collapse: collapse;}td, th {border: 1px solid #dddddd;text-align: left;padding: 8px;}tr:nth-child(even) {background-color: #dddddd;}</style>'
-    headers = ['Node Index', 'Node', 'Hop', 'Node Type', 'Link']
+    headers = ['Node Index', 'Title', 'Depth', 'Link Type', 'Link']
     headers_row = ""
     for header in headers:
         headers_row += '<th>' + header + '</th>'
     nodes = ""
     for i, node in enumerate(path):
-        nodes += '<tr><td>' + node['node_index'] + '</td><td>' + str(node['node']) + '</td><td>' + str(node['hop']) + '</td><td>' + str(node['node_type']) + '</td><td>' + str(node['link']) + '</td></tr>'
+        nodes += '<tr><td>' + node['node_index'] + '</td><td>' + str(node['title']) + '</td><td>' + str(node['depth']) + '</td><td>' + str(node['link_type']) + '</td><td>' + str(node['link']) + '</td></tr>'
     table_html = table_style + '<table><tr>' + headers_row + '</tr>' + nodes + '</table>'
     return table_html
