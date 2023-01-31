@@ -53,4 +53,7 @@ docs/_build/
 notebooks/testing.ipynb
 notebooks/investigations
 
+# Jupyter
+.ipynb_checkpoints
+
 *.DS_Store
