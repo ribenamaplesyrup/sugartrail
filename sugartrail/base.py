@@ -221,9 +221,9 @@ class Network:
         f.close
 
     def load(self, filename):
-        """Loads network stored in JSON format from '../assets/networks/'."""
+        """Loads network stored in JSON format."""
         if filename:
-            f = open(f'../assets/networks/{filename}')
+            f = open(f'{filename}')
             network_data = json.load(f)
             self.graph = network_data['graph']
             self.company_records = network_data['company_records']
@@ -372,7 +372,7 @@ class Network:
         path = sugartrail.processing.asciiify_path(path)
         return path
 
-    def perform_hop(self, hops, company_data=None):
+    def perform_hop(self, hops, company_data=None, print_progress=True):
         """Gets companies, officers and addresses within n-degrees of seperation
         from current nodes, where n is the number of hops."""
         hop_history = []
@@ -396,26 +396,29 @@ class Network:
                     if address not in self.processed_addresses:
                         self.hop.search_address(self, address, company_data)
                         self.processed_addresses.append(address)
-                    IPython.display.clear_output(wait=True)
-                    print("Hop number: " + str(hop+1))
-                    print("Processed " + str(i+1) + "/" + str(len(selected_addresses)) + " addresses.")
+                    if print_progress:
+                        IPython.display.clear_output(wait=True)
+                        print("Hop number: " + str(hop+1))
+                        print("Processed " + str(i+1) + "/" + str(len(selected_addresses)) + " addresses.")
                 for j,company in enumerate(selected_companies):
                     if company not in self.processed_companies:
                         self.hop.search_company_id(self,company)
                         self.processed_companies.append(company)
-                    IPython.display.clear_output(wait=True)
-                    print("Hop number: " + str(hop+1))
-                    print("Processed " + str(len(selected_addresses)) + "/" + str(len(selected_addresses)) + " addresses.")
-                    print("Processed " + str(j+1) + "/" + str(len(selected_companies)) + " companies.")
+                    if print_progress:
+                        IPython.display.clear_output(wait=True)
+                        print("Hop number: " + str(hop+1))
+                        print("Processed " + str(len(selected_addresses)) + "/" + str(len(selected_addresses)) + " addresses.")
+                        print("Processed " + str(j+1) + "/" + str(len(selected_companies)) + " companies.")
                 for k,officer in enumerate(selected_officers):
                     if officer not in self.processed_officers:
                         self.hop.search_officer_id(self,officer)
                         self.processed_officers.append(officer)
-                    IPython.display.clear_output(wait=True)
-                    print("Hop number: " + str(hop+1))
-                    print("Processed " + str(len(selected_addresses)) + "/" + str(len(selected_addresses)) + " addresses.")
-                    print("Processed " + str(len(selected_companies)) + "/" + str(len(selected_companies)) + " companies.")
-                    print("Processed " + str(k+1) + "/" + str(len(selected_officers)) + " officers.")
+                    if print_progress:
+                        IPython.display.clear_output(wait=True)
+                        print("Hop number: " + str(hop+1))
+                        print("Processed " + str(len(selected_addresses)) + "/" + str(len(selected_addresses)) + " addresses.")
+                        print("Processed " + str(len(selected_companies)) + "/" + str(len(selected_companies)) + " companies.")
+                        print("Processed " + str(k+1) + "/" + str(len(selected_officers)) + " officers.")
                 self.maxsize_entities = [i for n, i in enumerate(self.maxsize_entities) if i not in self.maxsize_entities[n + 1:]]
                 self.processed_officers, self.processed_companies,  self.processed_addresses = [],[],[]
                 self.n += 1

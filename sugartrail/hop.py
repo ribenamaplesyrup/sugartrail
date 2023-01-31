@@ -68,23 +68,24 @@ class Hop:
         # get company address history
             address_history = sugartrail.processing.build_address_history(company_id)
             # network.address_history.extend(address_history)
-            for address in address_history:
-                if 'address' in address:
-                    network.address_history.append(address)
-                    new_address = address['address']
-                    if new_address not in network.graph:
-                        network.graph[new_address] = {
-                            'depth': network.n+1,
-                            'title': new_address,
-                            'node_type': "Address",
-                            'arcs': []
+            if address_history:
+                for address in address_history:
+                    if 'address' in address:
+                        network.address_history.append(address)
+                        new_address = address['address']
+                        if new_address not in network.graph:
+                            network.graph[new_address] = {
+                                'depth': network.n+1,
+                                'title': new_address,
+                                'node_type': "Address",
+                                'arcs': []
+                            }
+                        arc = {
+                            'arc_type': "Historic Address",
+                            'start_node': company_id
                         }
-                    arc = {
-                        'arc_type': "Historic Address",
-                        'start_node': company_id
-                    }
-                    if arc not in network.graph[new_address]['arcs'] and network.graph[new_address]['depth'] == network.n+1:
-                        network.graph[new_address]['arcs'].append(arc)
+                        if arc not in network.graph[new_address]['arcs'] and network.graph[new_address]['depth'] == network.n+1:
+                            network.graph[new_address]['arcs'].append(arc)
 
     def search_officer_id(self, network, officer_id):
         """Gets officers, companies and addresses connected to input officer

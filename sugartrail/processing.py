@@ -110,6 +110,21 @@ def process_address_changes(address_changes):
                 address_changes['items'][i]['description_values']['new_address'] = address_changes['items'][i-1]['description_values']['old_address']
     return address_changes
 
+def find_network_connections(first_network, second_network, max_depth=5):
+    """Returns a list of nodes connecting ."""
+    hops = 0
+    while hops < max_depth:
+        first_network.perform_hop(1, print_progress=False)
+        second_network.perform_hop(1, print_progress=False)
+        hops += 1
+        print(str(hops) + "/" + str(max_depth) + " hops completed.")
+        connectors = [x for x in list(filter(first_network.graph.__contains__, second_network.graph.keys())) if x]
+        if connectors:
+            print("Found connection(s)!")
+            return connectors
+    print("No connections found.")
+    return
+
 def build_address_history(company_id):
     """Returns a list of dicts containing historic addresses for input company
     (company_id)."""

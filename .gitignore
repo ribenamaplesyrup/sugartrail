@@ -51,5 +51,6 @@ docs/_build/
 
 # Testing notebook
 notebooks/testing.ipynb
+notebooks/investigations
 
 *.DS_Store
