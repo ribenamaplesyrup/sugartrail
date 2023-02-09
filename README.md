@@ -2,7 +2,10 @@
 
 ![title](assets/images/sweetstreet.png)
 
-Sugartrail is a network analysis and visualisation tool developed to make it easier and faster for researchers to explore connections between companies, officers and addresses within Companies House.
+Sugartrail is a network analysis and visualisation tool developed to make it easier and faster for researchers to explore connections between companies, officers and addresses within Companies House. The tool can be used for the following use-cases:
+
+- Get all companies, officers and addresses connected to a select company based upon user-defined connection criteria and n degrees of seperation. If two companies are connected, show the path of companies, officers and addresses connecting those companies. 
+- Check if two companies are connected within n degrees of seperation, and if so how.
 
 ## Requirements
 
