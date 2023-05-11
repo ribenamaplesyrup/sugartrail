@@ -19,9 +19,7 @@ class Network:
         self.hop = sugartrail.hop.Hop()
         self.hop_history = []
         self.maxsize_entities = []
-        self.processed_officers  = []
-        self.processed_companies = []
-        self.processed_addresses = []
+        self.progress = sugartrail.progress.Progress()
         self._file = self.load(file)
         self.initialise_node(officer_id, company_id, address, file)
 
@@ -39,9 +37,9 @@ class Network:
             args[0].link_type = None
             args[0].hop_history = []
             args[0].maxsize_entities = []
-            args[0].processed_officers  = []
-            args[0].processed_companies = []
-            args[0].processed_addresses = []
+            # args[0].processed_officers  = []
+            # args[0].processed_companies = []
+            # args[0].processed_addresses = []
             func(*args, **kwargs)
         return wrapper_clear
 
@@ -235,9 +233,9 @@ class Network:
             self.link_type = network_data['link_type']
             self.hop_history = network_data['hop_history']
             self.maxsize_entities = network_data['maxsize_entities']
-            self.processed_officers  = network_data['processed_officers']
-            self.processed_companies = network_data['processed_companies']
-            self.processed_addresses = network_data['processed_addresses']
+            # self.processed_officers  = network_data['processed_officers']
+            # self.processed_companies = network_data['processed_companies']
+            # self.processed_addresses = network_data['processed_addresses']
 
     def run_map_preprocessing(self):
         """Gets missing/additional information on companies and addresses required for
@@ -377,50 +375,44 @@ class Network:
         from current nodes, where n is the number of hops."""
         hop_history = []
         for hop in range(hops):
+            self.progress.intro_print = "Hop number: " + str(hop+1)
             # retrieve addresses, companies and officers at edge of network
-            selected_addresses, selected_companies, selected_officers = [], [], []
             for k in self.graph.keys():
                 if self.graph[k]['depth'] == self.n:
                     if self.graph[k]['node_type'] == 'Address':
-                        selected_addresses.append(k)
+                        self.progress.selected_addresses.append(k)
                     elif self.graph[k]['node_type'] == 'Person':
-                        selected_officers.append(k)
+                        self.progress.selected_officers.append(k)
                     elif self.graph[k]['node_type'] == 'Company':
-                        selected_companies.append(k)
-            if not selected_addresses and not selected_companies and not selected_officers:
+                        self.progress.selected_companies.append(k)
+            if not self.progress.selected_addresses and not self.progress.selected_companies and not self.progress.selected_officers:
                 print("Edge of network reached.")
                 break
-            # get new addresses, companies and officers connected to selected
             else:
-                for i,address in enumerate(selected_addresses):
-                    if address not in self.processed_addresses:
+                for i,address in enumerate(self.progress.selected_addresses):
+                    self.progress.address_index = i
+                    if address not in self.progress.processed_addresses:
                         self.hop.search_address(self, address, company_data)
-                        self.processed_addresses.append(address)
+                        self.progress.processed_addresses.append(address)
                     if print_progress:
-                        IPython.display.clear_output(wait=True)
-                        print("Hop number: " + str(hop+1))
-                        print("Processed " + str(i+1) + "/" + str(len(selected_addresses)) + " addresses.")
-                for j,company in enumerate(selected_companies):
-                    if company not in self.processed_companies:
+                        self.progress.print_progress()
+                for j,company in enumerate(self.progress.selected_companies):
+                    self.progress.company_index = j
+                    if company not in self.progress.processed_companies:
                         self.hop.search_company_id(self,company)
-                        self.processed_companies.append(company)
+                        self.progress.processed_companies.append(company)
                     if print_progress:
-                        IPython.display.clear_output(wait=True)
-                        print("Hop number: " + str(hop+1))
-                        print("Processed " + str(len(selected_addresses)) + "/" + str(len(selected_addresses)) + " addresses.")
-                        print("Processed " + str(j+1) + "/" + str(len(selected_companies)) + " companies.")
-                for k,officer in enumerate(selected_officers):
-                    if officer not in self.processed_officers:
+                        self.progress.print_progress()
+                for k,officer in enumerate(self.progress.selected_officers):
+                    self.progress.officer_index = k
+                    if officer not in self.progress.processed_officers:
                         self.hop.search_officer_id(self,officer)
-                        self.processed_officers.append(officer)
+                        self.progress.processed_officers.append(officer)
                     if print_progress:
-                        IPython.display.clear_output(wait=True)
-                        print("Hop number: " + str(hop+1))
-                        print("Processed " + str(len(selected_addresses)) + "/" + str(len(selected_addresses)) + " addresses.")
-                        print("Processed " + str(len(selected_companies)) + "/" + str(len(selected_companies)) + " companies.")
-                        print("Processed " + str(k+1) + "/" + str(len(selected_officers)) + " officers.")
+                        self.progress.print_progress()
                 self.maxsize_entities = [i for n, i in enumerate(self.maxsize_entities) if i not in self.maxsize_entities[n + 1:]]
-                self.processed_officers, self.processed_companies,  self.processed_addresses = [],[],[]
+                self.progress.processed_officers, self.progress.processed_companies,  self.progress.processed_addresses = [],[],[]
+                self.progress.selected_officers, self.progress.selected_companies,  self.progress.selected_addresses = [],[],[]
                 self.n += 1
                 hop_history.append(self.hop.__dict__)
             self.hop_history.extend(hop_history)
