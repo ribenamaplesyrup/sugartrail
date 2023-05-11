@@ -5,6 +5,7 @@ import random
 import urllib
 import regex as re
 import collections
+import IPython
 from string import ascii_letters as alc
 
 def flatten(d, parent_key='', sep='.'):
@@ -119,6 +120,7 @@ def find_network_connections(first_network, second_network, max_depth=5, print_p
         first_network.perform_hop(1, print_progress=print_progress)
         second_network.perform_hop(1, print_progress=print_progress)
         hops += 1
+        IPython.display.clear_output(wait=True)
         print(str(hops) + "/" + str(max_depth) + " hops completed.")
         connectors = [x for x in list(filter(first_network.graph.__contains__, second_network.graph.keys())) if x]
         if connectors:
