@@ -32,7 +32,7 @@ git clone https://github.com/ribenamaplesyrup/sugartrail.git
 3. Navigate to the main directory and run:
 
 ```bash
-conda env create -f config/environment.yml
+conda create -n candystore python=3.10
 conda activate candystore
 pip install -e .
 jupyter nbextension enable --py --sys-prefix ipyleaflet
