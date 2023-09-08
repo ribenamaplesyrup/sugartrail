@@ -212,7 +212,7 @@ class Network:
 
     def save(self, filename, location='../assets/networks/'):
         """Saves network in JSON format to '../assets/networks/'."""
-        network_data = {k: v for k, v in self.__dict__.items() if k != 'hop' and k != 'file'}
+        network_data = {k: v for k, v in self.__dict__.items() if k not in ['hop', 'file', 'progress']}
         saved_network = json.dumps(network_data)
         f = open(location + f'{filename}', 'w')
         f.write(saved_network)
