@@ -2,9 +2,10 @@ import sugartrail
 import IPython
 import json
 import functools
-import pandas as pd
 
 class Network:
+    _unserialisable_attributes = ['hop', '_file', 'progress']
+
     """Class represents a network of connected companies, officers and
     addresses. Class contains methods to build network of user defined size from
     a single seed company, officer or address."""
@@ -142,7 +143,7 @@ class Network:
         return company_table
 
     @property
-    def address(self, value):
+    def address(self):
         """address property representing seed address."""
         return self._address
 
@@ -212,7 +213,7 @@ class Network:
 
     def save(self, filename, location='../assets/networks/'):
         """Saves network in JSON format to '../assets/networks/'."""
-        network_data = {k: v for k, v in self.__dict__.items() if k not in ['hop', 'file', 'progress']}
+        network_data = {k: v for k, v in self.__dict__.items() if k not in self._unserialisable_attributes}
         saved_network = json.dumps(network_data)
         f = open(location + f'{filename}', 'w')
         f.write(saved_network)

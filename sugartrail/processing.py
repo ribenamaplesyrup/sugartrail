@@ -1,7 +1,5 @@
 from sugartrail import api
 import requests
-import pandas as pd
-import random
 import urllib
 import regex as re
 import collections
@@ -171,7 +169,6 @@ def build_address_history(company_id):
                         addresses.append(entry)
                     return addresses
                 else:
-                    address_history = []
                     entry = {}
                     for k, key in enumerate(["date_of_creation","date_of_cessation","registered_office_address"]):
                         if key in company_info:
@@ -184,7 +181,6 @@ def build_address_history(company_id):
                     entry["lon"] = ""
                     return [entry]
         else:
-            address_history = []
             entry = {}
             for k, key in enumerate(["date_of_creation","date_of_cessation","registered_office_address"]):
                 if key in company_info:

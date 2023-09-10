@@ -1,5 +1,4 @@
 import sugartrail
-import pytest
 import json
 
 # test 1: network initialised without auth and without arguments:
@@ -47,7 +46,7 @@ def test_file_init_without_auth():
     with open('./assets/networks/domain_corp_network.json') as f:
         network_json = json.load(f)
     for key in network.__dict__.keys():
-        if key not in ['hop', '_file', 'progress']:
+        if key not in sugartrail.base.Network._unserialisable_attributes:
             assert network.__dict__[key] == network_json[key]
 
 # test 5: network loads network from file without auth:
@@ -58,5 +57,5 @@ def test_file_load_without_auth():
     with open('./assets/networks/domain_corp_network.json') as f:
         network_json = json.load(f)
     for key in network.__dict__.keys():
-        if key not in ['hop', '_file', 'progress']:
+        if key not in sugartrail.base.Network._unserialisable_attributes:
             assert network.__dict__[key] == network_json[key]

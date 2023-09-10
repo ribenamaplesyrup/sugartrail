@@ -2,7 +2,7 @@ import requests
 import time
 import os
 import functools
-from ratelimit import limits, RateLimitException, sleep_and_retry
+from ratelimit import limits, sleep_and_retry
 
 access_token = ""
 username = ""
