@@ -1,8 +1,6 @@
 from ipywidgets import HTML, Widget, Layout, Output, VBox, HBox, Textarea
 from ipyleaflet import Map, Marker, MarkerCluster, AwesomeIcon, AntPath, Popup
-from datetime import datetime
 import functools
-import math
 
 def build_map(network, clear_widget=True):
     """Generates map and table for displaying paths for input network data."""

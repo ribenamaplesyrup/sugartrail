@@ -1,4 +1,3 @@
-import sugartrail
 import IPython
 
 class Progress:
