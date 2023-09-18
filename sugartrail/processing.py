@@ -115,15 +115,17 @@ def find_network_connections(first_network, second_network, max_depth=5, print_p
     while hops < max_depth:
         first_network.progress.pre_print = str(hops) + "/" + str(max_depth) + " hops completed."
         second_network.progress.pre_print = str(hops) + "/" + str(max_depth) + " hops completed."
-        first_network.perform_hop(1, print_progress=print_progress)
-        second_network.perform_hop(1, print_progress=print_progress)
+        if first_network.n < hops:
+            first_network.perform_hop(1, print_progress=print_progress)
+        if second_network.n < hops:
+            second_network.perform_hop(1, print_progress=print_progress)
         hops += 1
         IPython.display.clear_output(wait=True)
-        print(str(hops) + "/" + str(max_depth) + " hops completed.")
         connectors = [x for x in list(filter(first_network.graph.__contains__, second_network.graph.keys())) if x]
         if connectors:
             print("Found connection(s)!")
             return connectors
+        print(str(hops) + "/" + str(max_depth) + " hops completed.")
     print("No connections found.")
     return
 
