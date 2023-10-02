@@ -1,10 +1,16 @@
-from sugartrail import api
+from sugartrail import api, base
 import requests
 import urllib
 import regex as re
 import collections
+import os
 import IPython
 from string import ascii_letters as alc
+import networkx as nx
+from pyvis.network import Network
+import warnings
+warnings.filterwarnings('ignore')
+
 
 def flatten(d, parent_key='', sep='.'):
     """Flatten nested dictionary."""
@@ -205,3 +211,101 @@ def normalise_address(address_dict):
                     address_list.append(address_dict[key])
     address_string = ' '.join(address_list)
     return address_string
+
+def load_multiple_networks(networks_dir):
+    """Loads multiple network files from a directory into a list"""
+    entity_graphs = []
+    for filename in os.listdir(networks_dir):
+        if filename.endswith('.json'):
+            network = base.Network(file=f'{networks_dir}/{filename}')
+            entity_graphs.append(network)
+    return entity_graphs
+
+def find_multi_network_connections(networks: list):
+    """Finds the shortest paths connecting 2+ networks from a list of networks,
+    returning nodes within these found paths."""
+    s_path_network = []
+    for i, entity in enumerate(networks):
+        for j in range(i+1,len(networks)):
+            connections = [(x, networks[i].graph[x]['depth']+networks[j].graph[x]['depth']) for x in list(filter(networks[i].graph.__contains__, networks[j].graph.keys())) if x]
+            sorted_data = sorted(connections, key=lambda x: x[1])
+            filtered_data = [x[0] for x in list(filter(lambda x: x[1] == sorted_data[0][1], sorted_data))]
+            for connection in filtered_data:
+                for entity_graph in [networks[i], networks[j]]:
+                    for node in entity_graph.find_path(connection):
+                        network_node = {'title': node['title'],
+                                         'node_type': node['node_type'],
+                                         'id': node['id'],
+                                         'link_type': node['link_type'],
+                                         'link' : "",
+                                         'depth': node['depth']
+                                        }
+                        if node['link']:
+                            for link in [x.strip() for x in node['link'].split(',')]:
+                                new_node = network_node.copy()
+                                new_node['link'] = next((item['id'] for item in entity_graph.find_path(connection) if item["node_index"] == link), None)
+                                if new_node not in s_path_network:
+                                    s_path_network.append(new_node)
+                        else:
+                            new_node = network_node.copy()
+                            s_path_network.append(new_node)
+    return s_path_network
+
+def visualise_connections(network:list, viz_path):
+    """Generates a pyviz force directed graph visualisation from a list of nodes
+    showing how they connect. Resulting HTML file saved to viz_path.
+    """
+    G = nx.DiGraph()
+    # Add nodes and edges to the graph
+    for item in network:
+        node_id = item['id']
+        G.add_node(node_id, label=item['title'], type=item['node_type'], depth=item['depth'])
+        # Add edges based on link_type and link
+        if item['link']:
+            G.add_edge(node_id, item['link'], type=item['link_type'])
+    # Create a pyvis network using the new graph
+    nt = Network(notebook=True, cdn_resources='in_line')
+    nt.from_nx(G)
+    # Map node_type to corresponding emoji URL
+    emoji_urls = {
+        "Person": "https://emoji.beeimg.com/👤/240/apple",
+        "Company": "https://emoji.beeimg.com/💰/240/apple",
+        "Address": "https://emoji.beeimg.com/🏢/240/apple"
+    }
+    # Update nodes to use the image based on node_type
+    for node in nt.nodes:
+        node_type = node["type"]  # Get the type from the node
+        node["size"] = 30
+        if node_type in emoji_urls:
+            node["image"] = emoji_urls[node_type]
+            # check if node is origin node:
+            if node["depth"] == 0:
+                node["image"] = "https://emoji.beeimg.com/🌐/240/apple"
+                node["color"] = "white"
+                node["shape"] = "circularImage"
+            else:
+                node["shape"] = "image"
+    for edge in nt.edges:
+        edge["color"] = "black"
+    # Enable physics
+    nt.toggle_physics(True)
+    physics_options = """
+    {
+        "physics": {
+            "solver": "barnesHut",
+            "barnesHut": {
+                "gravitationalConstant": -10000,
+                "centralGravity": 0.3,
+                "springLength": 100,
+                "springConstant": 0.05,
+                "damping": 0.09,
+                "avoidOverlap": 0.5
+            },
+            "minVelocity": 0.75,
+            "maxVelocity": 5
+        }
+    }
+    """
+    nt.set_options(physics_options)
+    # Display
+    return nt.show(f'{viz_path}/graph.html')

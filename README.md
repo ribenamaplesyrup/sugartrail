@@ -1,10 +1,11 @@
 # Sugartrail
 
 ![title](assets/images/sweetstreet.png)
+![title](assets/images/brexit_network.png)
 
 Sugartrail is a network analysis and visualisation tool developed to make it easier and faster for researchers to explore connections between companies, officers and addresses within Companies House. The tool can be used for the following use-cases:
 
-- Get all companies, officers and addresses connected to a company within n degrees of seperation, based upon user-defined connection criteria. If two companies are connected, get the path of companies, officers and addresses connecting those companies. 
+- Get all companies, officers and addresses connected to a company within n degrees of seperation, based upon user-defined connection criteria. If two companies are connected, get the path of companies, officers and addresses connecting those companies.
 - Check if two companies are connected, and if so get the path to show how they are connected.
 
 ## Requirements
@@ -13,7 +14,7 @@ You will require an API key from Companies House to get data. First you will nee
 
 ## No-Install Usage
 
-A hosted demo of the Sugartrail dashboard can be accessed [here](https://stark-island-99644.herokuapp.com/) (might take a few seconds to load the page). This demo times out after 30 mins so may not be suitable for building large networks at present. 
+A hosted demo of the Sugartrail dashboard can be accessed [here](https://stark-island-99644.herokuapp.com/) (might take a few seconds to load the page). This demo times out after 30 mins so may not be suitable for building large networks at present.
 
 ## Demo
 
@@ -41,7 +42,7 @@ jupyter nbextension enable --py --sys-prefix ipyleaflet
 4. For a quickstart run `voila --no-browser --debug --Voila.ip=0.0.0.0 dashboard/Sugartrail.ipynb --VoilaConfiguration.file_whitelist="['.*']"` and navigate to the url printed in your terminal where Voilà is running at (no-code). For a more detailed explanation of the tool's capabilities, run `jupyter notebook notebooks` and open either `quickstart.ipynb` or `001_getting_started.ipynb`.
 
 
-## Examples & Tutorials 
+## Examples & Tutorials
 
 Tutorial | Title  | Description | Format
 ------------- | ------------- | ------------- | -------------
@@ -50,4 +51,5 @@ Tutorial | Title  | Description | Format
 002 | [Candy Connections](https://github.com/ribenamaplesyrup/sugartrail/blob/main/notebooks/002_candy_connections.ipynb) | Explore how many of Oxford Street’s souvenir and candy shops are connected through a single company 🇺🇸🇬🇧🍬 | Jupyter Notebook
 003 | [Virtual Offices](https://github.com/ribenamaplesyrup/sugartrail/blob/main/notebooks/003_virtual_offices.ipynb) | Explore addresses (such as virtual offices) with thousands of companies registered. This tutorial also compares two different methods of retrieving data from Companies House; the Companies House API and the Companies House Data Product download. | Jupyter Notebook
 004 | [Connection Check](https://github.com/ribenamaplesyrup/sugartrail/blob/main/notebooks/004_connection_check.ipynb) | Investigate if two different companies are connected and if so how. | Jupyter Notebook
+005 | [Connection Visualise](https://github.com/ribenamaplesyrup/sugartrail/blob/main/notebooks/005_connection_visualise.ipynb) | Visualise how 7 networks interconnect. | Jupyter Notebook
 _ | [Sugartrail Dashboard](https://stark-island-99644.herokuapp.com/) | Get companies, officers and addresses connected to select company and visualise results within basic interface. | Voila Dashboard
