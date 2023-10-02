@@ -1,12 +1,13 @@
 # Sugartrail
 
 ![title](assets/images/sweetstreet.png)
-![title](assets/images/brexit_network.png)
 
 Sugartrail is a network analysis and visualisation tool developed to make it easier and faster for researchers to explore connections between companies, officers and addresses within Companies House. The tool can be used for the following use-cases:
 
 - Get all companies, officers and addresses connected to a company within n degrees of seperation, based upon user-defined connection criteria. If two companies are connected, get the path of companies, officers and addresses connecting those companies.
-- Check if two companies are connected, and if so get the path to show how they are connected.
+- Check if a selection of companies, officers and addresses are connected within n degrees of seperation, and visualise the paths that connect them.
+
+![title](assets/images/brexit_network.png)
 
 ## Requirements
 
