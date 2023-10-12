@@ -388,7 +388,7 @@ class Network:
                         self.progress.selected_companies.append(k)
             if not self.progress.selected_addresses and not self.progress.selected_companies and not self.progress.selected_officers:
                 print("Edge of network reached.")
-                break
+                return
             else:
                 for i,address in enumerate(self.progress.selected_addresses):
                     self.progress.address_index = i
