@@ -31,7 +31,7 @@ def test():
 
 # Companies House API allows 600 requests every 5 mins
 @sleep_and_retry
-@limits(calls=120, period=60)
+@limits(calls=1, period=0.6)
 def make_request(url, input, input_type, response_type):
     """Query Companies House API."""
     # time.sleep(0.5)
