@@ -33,7 +33,7 @@ class Hop:
                 if new_officer_id not in network.graph:
                     network.graph[new_officer_id] = {
                         'depth': network.n+1,
-                        'title': sugartrail.processing.normalise_name(officer['name']),
+                        'title': sugartrail.api.get_appointments(new_officer_id)['items'][0]['name'],
                         'node_type': "Person",
                         'arcs': []
                     }
