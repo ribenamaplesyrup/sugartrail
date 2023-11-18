@@ -31,9 +31,18 @@ class Hop:
             for officer in officers:
                 new_officer_id = str(officer['links']['officer']['appointments'].split('/')[2])
                 if new_officer_id not in network.graph:
+                    try:
+                        title = sugartrail.api.get_appointments(new_officer_id)['items'][0]['name']
+                    except:
+                        print(f"failed to get title for officer: {new_officer_id}")
+                        try:
+                            title = sugartrail.processing.normalise_name(officer['name'])
+                        except:
+                            print(f"failed to get title for officer: {new_officer_id}") 
+                            title = new_officer_id
                     network.graph[new_officer_id] = {
                         'depth': network.n+1,
-                        'title': sugartrail.api.get_appointments(new_officer_id)['items'][0]['name'],
+                        'title': title,
                         'node_type': "Person",
                         'arcs': []
                     }
