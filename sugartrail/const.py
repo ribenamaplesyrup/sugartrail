@@ -1,3 +1,5 @@
-import sugartrail 
+import sugartrail
 
-data_path = "../assets"
+data_path = "../assets/"
+networks_path = "../assets/networks/"
+vis_path = "../assets/visualisations/"

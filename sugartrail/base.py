@@ -215,7 +215,7 @@ class Network:
         """Saves network in JSON format to '../assets/networks/'."""
         network_data = {k: v for k, v in self.__dict__.items() if k not in self._unserialisable_attributes}
         saved_network = json.dumps(network_data)
-        f = open(location + f'{filename}', 'w')
+        f = open(location + f'{sugartrail.utils.ensure_json_extension(filename)}', 'w')
         f.write(saved_network)
         f.close
 
@@ -312,7 +312,7 @@ class Network:
             IPython.display.clear_output(wait=True)
             print("Processed " + str(i+1) + "/" + str(len(self.address_history)) + " addresses.")
             if address['address'] not in address_coords:
-                coords = sugartrail.processing.get_coords_from_address(address['address'])
+                coords = sugartrail.utils.get_coords_from_address(address['address'])
                 if coords:
                     address_coords[address['address']] = {'lat': coords['lat'], 'lon': coords['lon']}
                 else:

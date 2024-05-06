@@ -36,9 +36,9 @@ class Hop:
                     except:
                         print(f"failed to get title for officer: {new_officer_id}")
                         try:
-                            title = sugartrail.processing.normalise_name(officer['name'])
+                            title = sugartrail.utils.normalise_name(officer['name'])
                         except:
-                            print(f"failed to get title for officer: {new_officer_id}") 
+                            print(f"failed to get title for officer: {new_officer_id}")
                             title = new_officer_id
                     network.graph[new_officer_id] = {
                         'depth': network.n+1,
@@ -59,7 +59,7 @@ class Hop:
                 if 'items' in psc:
                     for person in psc['items']:
                         if "address" in person:
-                            new_address = sugartrail.processing.normalise_address(person['address'])
+                            new_address = sugartrail.utils.normalise_address(person['address'])
                             if new_address not in network.graph:
                                 network.graph[new_address] = {
                                     'depth': network.n+1,
@@ -127,7 +127,7 @@ class Hop:
         if self.get_officer_correspondance_address:
             correspondance_address = sugartrail.api.get_correspondance_address(officer_id)
             if correspondance_address:
-                new_address = sugartrail.processing.normalise_address(correspondance_address['items'][0]['address'])
+                new_address = sugartrail.utils.normalise_address(correspondance_address['items'][0]['address'])
                 if new_address not in network.graph:
                     network.graph[new_address] = {
                         'depth': network.n+1,
