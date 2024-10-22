@@ -97,26 +97,28 @@ def get_coords_from_address(address_string):
     """Attempt retrieval of coords for input address string."""
     params = {'q': address_string, 'format': 'json'}
     url = 'https://nominatim.openstreetmap.org/search?' + urllib.parse.urlencode(params)
-    response = requests.get(url).json()
-    if response:
-        return {'lat': response[0]['lat'], 'lon': response[0]['lon'], 'address': address_string}
-    else:
-        postcode_string = infer_postcode(address_string)
-        if postcode_string:
-            url = "http://api.postcodes.io/postcodes/" + urllib.parse.quote(postcode_string)
-            response = requests.get(url).json()
-            if str(response['status']) == '200':
-                return {'lat': response['result']['latitude'], 'lon': response['result']['longitude'], 'postcode': postcode_string}
-            else:
-                # try nearby postcode:
-                nearby_postcode = get_nearby_postcode(postcode_string)
-                if nearby_postcode:
-                    url = "http://api.postcodes.io/postcodes/" + urllib.parse.quote(nearby_postcode)
-                    response = requests.get(url).json()
-                    if str(response['status']) == "200":
-                        return {'lat': response['result']['latitude'], 'lon': response['result']['longitude'], 'postcode': nearby_postcode}
-                else:
-                    print("failed")
+    response = requests.get(url)
+    if response.status_code == 200 and response.text:
+        response=response.json()
+        if response:
+            return {'lat': response[0]['lat'], 'lon': response[0]['lon'], 'address': address_string}
         else:
-            # print("No postcode found for: " + address_string)
-            pass
+            postcode_string = infer_postcode(address_string)
+            if postcode_string:
+                url = "http://api.postcodes.io/postcodes/" + urllib.parse.quote(postcode_string)
+                response = requests.get(url).json()
+                if str(response['status']) == '200':
+                    return {'lat': response['result']['latitude'], 'lon': response['result']['longitude'], 'postcode': postcode_string}
+                else:
+                    # try nearby postcode:
+                    nearby_postcode = get_nearby_postcode(postcode_string)
+                    if nearby_postcode:
+                        url = "http://api.postcodes.io/postcodes/" + urllib.parse.quote(nearby_postcode)
+                        response = requests.get(url).json()
+                        if str(response['status']) == "200":
+                            return {'lat': response['result']['latitude'], 'lon': response['result']['longitude'], 'postcode': nearby_postcode}
+                    else:
+                        print("failed")
+            else:
+                # print("No postcode found for: " + address_string)
+                pass
