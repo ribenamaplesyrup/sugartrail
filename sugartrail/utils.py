@@ -95,30 +95,44 @@ def get_nearby_postcode(postcode_string):
 
 def get_coords_from_address(address_string):
     """Attempt retrieval of coords for input address string."""
-    params = {'q': address_string, 'format': 'json'}
-    url = 'https://nominatim.openstreetmap.org/search?' + urllib.parse.urlencode(params)
-    response = requests.get(url)
-    if response.status_code == 200 and response.text:
-        response=response.json()
-        if response:
-            return {'lat': response[0]['lat'], 'lon': response[0]['lon'], 'address': address_string}
-        else:
-            postcode_string = infer_postcode(address_string)
-            if postcode_string:
-                url = "http://api.postcodes.io/postcodes/" + urllib.parse.quote(postcode_string)
-                response = requests.get(url).json()
-                if str(response['status']) == '200':
-                    return {'lat': response['result']['latitude'], 'lon': response['result']['longitude'], 'postcode': postcode_string}
-                else:
-                    # try nearby postcode:
-                    nearby_postcode = get_nearby_postcode(postcode_string)
-                    if nearby_postcode:
-                        url = "http://api.postcodes.io/postcodes/" + urllib.parse.quote(nearby_postcode)
-                        response = requests.get(url).json()
-                        if str(response['status']) == "200":
-                            return {'lat': response['result']['latitude'], 'lon': response['result']['longitude'], 'postcode': nearby_postcode}
-                    else:
-                        print("failed")
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
+    
+    try:
+        # Nominatim API request
+        params = {'q': address_string, 'format': 'json'}
+        url = 'https://nominatim.openstreetmap.org/search?' + urllib.parse.urlencode(params)
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        if response.status_code == 200 and response.text:
+            response_json = response.json()
+            if response_json:
+                return {'lat': response_json[0]['lat'], 'lon': response_json[0]['lon'], 'address': address_string}
             else:
-                # print("No postcode found for: " + address_string)
-                pass
+                # If Nominatim fails, try with postcode.io
+                postcode_string = infer_postcode(address_string)
+                if postcode_string:
+                    url = "http://api.postcodes.io/postcodes/" + urllib.parse.quote(postcode_string)
+                    response = requests.get(url, headers=headers, timeout=10)
+                    response_json = response.json()
+                    
+                    if str(response_json['status']) == '200':
+                        return {'lat': response_json['result']['latitude'], 'lon': response_json['result']['longitude'], 'postcode': postcode_string}
+                    else:
+                        # Try nearby postcode
+                        nearby_postcode = get_nearby_postcode(postcode_string)
+                        if nearby_postcode:
+                            url = "http://api.postcodes.io/postcodes/" + urllib.parse.quote(nearby_postcode)
+                            response = requests.get(url, headers=headers, timeout=10)
+                            response_json = response.json()
+                            
+                            if str(response_json['status']) == "200":
+                                return {'lat': response_json['result']['latitude'], 'lon': response_json['result']['longitude'], 'postcode': nearby_postcode}
+        print("Failed to retrieve coordinates.")
+    
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
+    
+    return None
