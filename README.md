@@ -36,7 +36,7 @@ pip install -e .
 jupyter nbextension enable --py --sys-prefix ipyleaflet
 ```
 
-4. For a quickstart run `python -m voila --no-browser --debug dashboard/Sugartrail.ipynb` and navigate to the url printed in your terminal where Voilà is running at (no-code). For a more detailed explanation of the tool's capabilities, run `jupyter notebook notebooks` and open either `quickstart.ipynb` or `001_getting_started.ipynb`.
+4. For a quickstart run `python -m voila --no-browser --debug dashboard/Sugartrail.ipynb --VoilaConfiguration.file_whitelist="['.*']"` and navigate to the url printed in your terminal where Voilà is running at (no-code). For a more detailed explanation of the tool's capabilities, run `jupyter notebook notebooks` and open either `quickstart.ipynb` or `001_getting_started.ipynb`.
 
 
 ## Examples & Tutorials
