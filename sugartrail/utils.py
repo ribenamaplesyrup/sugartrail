@@ -94,45 +94,43 @@ def get_nearby_postcode(postcode_string):
         return closest_address["postcode"]
 
 def get_coords_from_address(address_string):
-    """Attempt retrieval of coords for input address string."""
+    """Attempt retrieval of coords for input address string, respecting Nominatim's usage policy."""
+    # Headers with a custom User-Agent identifying the application
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+        'User-Agent': 'Investigation/1.0',  # Customize this for your app
+        'Referer': 'https://www.sugartrail.uk'  # Provide the referring URL relevant to your application
     }
-    
+    params = {'q': address_string, 'format': 'json'}
+    url = 'https://nominatim.openstreetmap.org/search?' + urllib.parse.urlencode(params)
     try:
-        # Nominatim API request
-        params = {'q': address_string, 'format': 'json'}
-        url = 'https://nominatim.openstreetmap.org/search?' + urllib.parse.urlencode(params)
         response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()
-        
-        if response.status_code == 200 and response.text:
+        response.raise_for_status()  # Raise HTTPError for bad responses (4xx, 5xx)
+        time.sleep(1)
+    except requests.exceptions.RequestException as e:
+        print(f"Request to {url} failed with error: {e}")
+        return None
+    if response.status_code == 200 and response.text:
+        try:
             response_json = response.json()
             if response_json:
-                return {'lat': response_json[0]['lat'], 'lon': response_json[0]['lon'], 'address': address_string}
-            else:
-                # If Nominatim fails, try with postcode.io
-                postcode_string = infer_postcode(address_string)
-                if postcode_string:
-                    url = "http://api.postcodes.io/postcodes/" + urllib.parse.quote(postcode_string)
-                    response = requests.get(url, headers=headers, timeout=10)
-                    response_json = response.json()
-                    
-                    if str(response_json['status']) == '200':
-                        return {'lat': response_json['result']['latitude'], 'lon': response_json['result']['longitude'], 'postcode': postcode_string}
-                    else:
-                        # Try nearby postcode
-                        nearby_postcode = get_nearby_postcode(postcode_string)
-                        if nearby_postcode:
-                            url = "http://api.postcodes.io/postcodes/" + urllib.parse.quote(nearby_postcode)
-                            response = requests.get(url, headers=headers, timeout=10)
-                            response_json = response.json()
-                            
-                            if str(response_json['status']) == "200":
-                                return {'lat': response_json['result']['latitude'], 'lon': response_json['result']['longitude'], 'postcode': nearby_postcode}
-        print("Failed to retrieve coordinates.")
-    
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
-    
+                result = {'lat': response_json[0]['lat'], 'lon': response_json[0]['lon'], 'address': address_string}
+                # cache[address_string] = result  # Cache the result
+                return result
+        except (IndexError, KeyError, ValueError) as e:
+            print(f"Error parsing JSON response from Nominatim: {e}")
+    # Postcode fallback if Nominatim fails
+    postcode_string = infer_postcode(address_string)
+    if postcode_string:
+        url = "http://api.postcodes.io/postcodes/" + urllib.parse.quote(postcode_string)
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            response_json = response.json()
+            if str(response_json['status']) == '200':
+                result = {'lat': response_json['result']['latitude'], 'lon': response_json['result']['longitude'], 'postcode': postcode_string}
+                return result
+        except requests.exceptions.RequestException as e:
+            print(f"Request to {url} failed with error: {e}")
+        except (KeyError, ValueError) as e:
+            print(f"Error processing response from Postcodes.io: {e}")
+    print("Failed to retrieve coordinates for address:", address_string)
     return None
