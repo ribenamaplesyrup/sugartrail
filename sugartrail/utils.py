@@ -5,6 +5,7 @@ import urllib
 import os
 import datetime
 import requests
+import time
 
 def download_file(url, folder_path):
     # Ensure the folder exists, create if it doesn't
