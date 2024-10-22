@@ -4,9 +4,3 @@ buildCommand = """
     pip install -e . && \
     jupyter nbextension enable --py --sys-prefix ipyleaflet
 """
-
-[deploy]
-startCommand = "echo Deployment started"
-healthcheckPath = "/"
-healthcheckTimeout = 100
-restartPolicyType = "never"
