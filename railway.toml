@@ -1,8 +1,6 @@
 [build]
 builder = "nixpacks"
 buildCommand = """
-    conda create -n candystore python=3.10 -y && \
-    conda activate candystore && \
     pip install -e . && \
     jupyter nbextension enable --py --sys-prefix ipyleaflet
 """
