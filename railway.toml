@@ -1,6 +1,5 @@
 [build]
 builder = "nixpacks"
 buildCommand = """
-    pip install -e . && \
-    jupyter nbextension enable --py --sys-prefix ipyleaflet
+    pip install -e .
 """
